@@ -19,7 +19,7 @@ int main()
     {
         signal(SIGINT, irc_server.SignalHandler); //-> catch the signal (ctrl + c)
 		signal(SIGQUIT, irc_server.SignalHandler); //-> catch the signal (ctrl + \)
-        irc_server.ServerStart();
+        irc_server.ServerStart(4444);
     }catch(const std::exception &e)
     {
         irc_server.CloseFds();

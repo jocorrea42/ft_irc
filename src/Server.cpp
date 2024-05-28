@@ -15,12 +15,10 @@
 Server::Server() 
 { 
 	this->_fd = -1;
-	this->_Signal = false; //-> initialize the static boolean
 } 
 Server::Server(int port, std::string password): _port(port), _pass(password)
 {
 	this->_fd = -1;
-	this->_Signal = false; //-> initialize the static boolean
 }
 
 void Server::ServerSocketCreate()
@@ -30,8 +28,7 @@ void Server::ServerSocketCreate()
 	_add.sin_family = AF_INET;		  //-> set the address family to ipv4
 	_add.sin_port = htons(this->_port); //-> convert the port to network byte order (big endian)
 	_add.sin_addr.s_addr = INADDR_ANY; //-> set the address to any local machine address
-	_fd = socket(AF_INET, SOCK_STREAM, 0); //-> create the server socket
-	if (_fd == -1) //-> check if the socket is created
+	if ((_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) //-> create the server socket and check if the socket is created
 		throw(std::runtime_error("faild to create socket"));
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1) //-> set the socket option (SO_REUSEADDR) to reuse the address
 		throw(std::runtime_error("faild to set option (SO_REUSEADDR) on socket"));
@@ -41,20 +38,16 @@ void Server::ServerSocketCreate()
 		throw(std::runtime_error("faild to bind socket"));
 	if (listen(_fd, SOMAXCONN) == -1) //-> listen for incoming connections and making the socket a passive socket
 		throw(std::runtime_error("listen() faild"));
-
-	_newClient.fd = _fd; //-> add the server socket to the pollfd
-	_newClient.events = POLLIN;  //-> set the event to POLLIN for reading data
-	_newClient.revents = 0;	  //-> set the revents to 0
-	_fds.push_back(_newClient);	  //-> add the server socket to the pollfd
+	addPollfd(_fd);
 }
 
-void Server::ServerStart()
+void Server::ServerStart(int port)
 {
-	this->_port = 4444;
+	this->_port = port;
 	ServerSocketCreate(); //-> create the server socket
 
-	std::cout << "Server <" << _fd << "> Connected, and is running!!!!!!!!" << std::endl;
-	std::cout << "Waiting to accept a connection for clients...\n";
+	std::cout << "IRC_SERVER <" << _fd << "> is listening!!!!!!!!" << std::endl;
+	std::cout << "Wait for clients...\n";
 	while (!(this->_Signal))									  //-> run the server until the signal is received
 	{																  // poll(fdsarray, fdsarraysize, time) el time en -1 bloquea hasta que exita evento en el poll
 		if ((poll(&_fds[0], _fds.size(), -1) == -1) && _Signal == false) // codigo para ver si ocurrio un evento
@@ -99,8 +92,7 @@ void Server::AcceptNewClient()//agregamos un  cliente a la lista de clientes
 	Client cli; //-> create a new client
 	socklen_t len = sizeof(_clientadd);
 
-	inConectionFd = accept(_fd, (sockaddr *)&(_clientadd), &len); //-> accept the new client
-	if (inConectionFd == -1)
+	if ((inConectionFd = accept(_fd, (sockaddr *)&(_clientadd), &len)) == -1) //-> accept the new client
 	{
 		std::cout << "accept() failed" << std::endl;
 		return;
@@ -111,16 +103,10 @@ void Server::AcceptNewClient()//agregamos un  cliente a la lista de clientes
 		std::cout << "fcntl() failed" << std::endl;
 		return;
 	}
-
-	_newClient.fd = inConectionFd;	 //-> add the client socket to the pollfd
-	_newClient.events = POLLIN; //-> set the event to POLLIN for reading data
-	_newClient.revents = 0;	 //-> set the revents to 0
-
 	cli.setFd(inConectionFd);						 //-> set the client file descriptor
 	cli.setIp(inet_ntoa((_clientadd.sin_addr))); //-> convert the ip address to string and set it
 	_clients.push_back(cli);					 //-> add the client to the vector of clients
-	_fds.push_back(_newClient);					 //-> add the client socket to the pollfd
-
+    addPollfd(inConectionFd);// -> agrega un nuevo fd a la lista de poll para la escucha de un evento
 	std::cout << "Client <" << inConectionFd << "> Connected" << std::endl;
 }
 
@@ -164,4 +150,14 @@ void Server::ClearClients(int fd)
 			break;
 		}
 	}
+}
+
+void		Server::addPollfd(int fd)
+{
+	struct pollfd newFdClientPoll;	  // lo mismo, estas tres estructuras se utilizan para la creacion y control de
+								  // los nuevos clientes conectados
+	newFdClientPoll.fd = fd; //-> add the server socket to the pollfd
+	newFdClientPoll.events = POLLIN;  //-> set the event to POLLIN for reading data
+	newFdClientPoll.revents = 0;	  //-> set the revents to 0
+	_fds.push_back(newFdClientPoll);	  //-> add the server socket to the pollfd
 }

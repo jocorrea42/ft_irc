@@ -46,8 +46,6 @@ private:
 	//  un evento determinado se mantiene la escucha por un tiempo en cada fd
 	struct sockaddr_in _add;		  // estructura de datos relacionada con la configuracion del socket
 	struct sockaddr_in _clientadd; // lo mismo pero para un nuevo cliente conectado
-	struct pollfd _newClient;	  // lo mismo, estas tres estructuras se utilizan para la creacion y control de
-								  // los nuevos clientes conectados
 public:
 	Server(); //-> default constructor
 	Server(int port, std::string password);
@@ -70,11 +68,11 @@ public:
 	void 		setUsername(std::string &username, int fd);
 	void 		setNickname(std::string cmd, int fd);
 
-	void ServerStart();			 //-> server initialization
-	void ServerSocketCreate();			 //-> server socket creation
-	void AcceptNewClient();		 //-> accept new client
-	void ReceiveNewData(int fd); //-> receive new data from a registered client
-
+	void		ServerStart(int port);			 //-> server initialization
+	void 		ServerSocketCreate();			 //-> server socket creation
+	void 		AcceptNewClient();		 //-> accept new client
+	void 		ReceiveNewData(int fd); //-> receive new data from a registered client
+	void		addPollfd(int fd); //-> agrego un elemento al vector poll de un cliente o el propio server 
 	static void SignalHandler(int signum); //-> signal handler
 
 	void CloseFds();		   //-> close file descriptors
