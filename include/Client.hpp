@@ -13,25 +13,28 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 # include "Server.hpp"
-# include "Channel.hpp"
+
 
 class Client
 {
 private:
-	int fd;
-	std::string ip_add;
+	int _fd;
+	std::string _ip_add;
+	std::string	_nickName;
 
 public:
-	Client(){};
-	Client(std::string ip_add) : ip_add(ip_add) {}
-	Client(int fd) : fd(fd) {}
-	Client(int fd, std::string ipadd) : fd(fd), ip_add(ipadd) {}
-	//Client(Client const &other);
-	~Client(){}
-	//Client &operator=(Client const &other);
-	void setIp(std::string ip) { this->ip_add = ip; }
-	void setFd(int fd) { this->fd = fd; }
-	int getFd() { return this->fd; }
-	std::string getIp() { return this->ip_add; }
+	Client(){std::cout << "se construyo un nuevo cliente vacio\n";}
+	Client(std::string ip_add) : _ip_add(ip_add) {std::cout << "nuevo cliente con ip:" << _ip_add << std::endl;}
+	Client(int fd) : _fd(fd) {std::cout << "nuevo cliente con fd:" << _fd << std::endl;}
+	Client(int fd, std::string ipadd) : _fd(fd), _ip_add(ipadd) {std::cout << "nuevo cliente con ip:" << _ip_add << ", fd:" << _fd << std::endl;}
+	Client(Client const &other);
+	~Client(){std::cout << "se destruyo el cliente " << _nickName << std::endl;}
+	Client &operator=(Client const &other);
+	void	setIp(std::string ip) { this->_ip_add = ip; }
+	void	setFd(int fd) { this->_fd = fd; }
+	void	setNickName(std::string	nick){this->_nickName = nick;}
+	int		getFd() { return this->_fd; }
+	std::string	getNickName(){return (this->_nickName);}
+	std::string getIp() { return this->_ip_add; }
 };
 #endif

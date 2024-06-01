@@ -26,6 +26,7 @@
 # include <string.h>
 # include "Client.hpp"
 # include "Channel.hpp"
+
 class Client;
 class Channel;
 
@@ -33,15 +34,17 @@ class Server //-> class for server
 {
 private:
 	int _port;
-	int _fd;
+	int _fd;//esto no lo necesito por que lo guardo en polls
+
 	static bool _Signal; 
 	std::string _pass;			 // el subject pude un pass
 	std::vector<Client> _clients; // relacion de agregacion
 	// un servidor puede tener muchos clientes, mientras un cliente pertenece a un servidor
 	// debido a que el cliente no se construye desde el server esta relacion es de agregacion
 	// y no de composicion dado que el server puede no tener clientes, pudiera ser una lista u otro tipo de dato
-	//std::vector<Channel> _channels;	// al igual que clientes
+	std::vector<Channel> _channels;	// al igual que clientes
 	std::vector<struct pollfd> _fds; // son los fd de los clientes, con el objetivo de monitorear con poll
+	unsigned short	_polls_size; 
 	// la aparicion de algun evento o cambio de estado de alguno de ellos, puede ser alguna escritura, o simplemente
 	//  un evento determinado se mantiene la escucha por un tiempo en cada fd
 	struct sockaddr_in _add;		  // estructura de datos relacionada con la configuracion del socket
@@ -49,7 +52,7 @@ private:
 public:
 	Server(); //-> default constructor
 	Server(int port, std::string password);
-	~Server(){};
+	~Server();
 	Server &operator=(Server const &other);
 	// setters y getters en funcion de necesidades
 	int			getFd();
@@ -60,7 +63,7 @@ public:
 	Client 		*getClientNick(std::string nick);
 	//Channel *getChannel(std::string name);
 	void 		setFd(int fd);
-	void 		SetPort(int port);
+	void 		setPort(int port);
 	void 		setPassword(std::string pass);
 	void 		addClient(Client newClient);
 	//void addChannel(Channel newChannel);
@@ -75,7 +78,12 @@ public:
 	void		addPollfd(int fd); //-> agrego un elemento al vector poll de un cliente o el propio server 
 	static void SignalHandler(int signum); //-> signal handler
 
-	void CloseFds();		   //-> close file descriptors
-	void ClearClients(int fd); //-> clear clients
+	void 		CloseFds();		   //-> close file descriptors
+	void 		ClearClients(int fd); //-> clear clients
+
+	void 		RemoveClient(int fd);
+	void 		RemoveChannel(std::string name);
+	void 		RemoveFds(int fd);
+	void		RmChannels(int fd);
 };
 #endif

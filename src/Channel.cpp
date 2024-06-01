@@ -28,9 +28,11 @@
 //     bool change_adminToClient(std::string &nick);
 //     void sendTo_all(std::string rpl1);
 // 	void sendTo_all(std::string rpl1, int fd);
-Channel::Channel(Channel const &src){*this = src;}
-Channel &Channel::operator=(Channel const &src)
+Channel &Channel::operator=(Channel const &other)
 {
-    return *this;
+    this->_name = other._name;
+    this->_password = other._password;
+    this->_clients = other._clients;
+    this->_admins = other._admins;
+    return (*this);
 }
-Channel::~Channel(){}

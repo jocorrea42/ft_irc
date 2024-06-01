@@ -14,29 +14,28 @@
 #define CHANNEL_HPP
 
 #include "Client.hpp"
-#include "Server.hpp"
 
 class Client;
 
 class Channel
 {
 private:
-    std::string name;
-    std::string password;
-    std::vector<Client> clients;
-    std::vector<Client> admins;
+    std::string _name;
+    std::string _password;
+    std::vector<Client*> _clients;
+    std::vector<Client*> _admins;
 
 public:
-    Channel();
-    ~Channel();
-    Channel(Channel const &src);
-    Channel &operator=(Channel const &src);
-    void SetPassword(std::string password);
-    void SetName(std::string name);
-    std::string GetPassword();
-	std::string GetName();
-    void add_client(Client newClient);
-    void add_admin(Client newClient);
+    Channel(){};
+    ~Channel(){};
+    Channel(Channel const &other){*this = other;}
+    Channel &operator=(Channel const &other);
+    void SetPassword(std::string password){this->_password = password;}
+    void SetName(std::string name){this->_name = name;}
+    std::string GetPassword(){return this->_password;}
+	std::string GetName(){return this->_name;}
+    void add_client(Client *newClient){this->_clients.push_back(newClient);}
+    void add_admin(Client *newClient){this->_admins.push_back(newClient);}
     void remove_client(int fd);
     void remove_admin(int fd);
     bool change_clientToAdmin(std::string &nick);
