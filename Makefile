@@ -1,5 +1,5 @@
 NAME_BOUNUS = bot
-NAME = ft_irc_server
+NAME = ircserv
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 INCLUDE = -Iinclude/Server.hpp include/Channel.hpp include/Client.hpp

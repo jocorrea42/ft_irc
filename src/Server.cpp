@@ -28,7 +28,7 @@ Server::~Server()
 	for (unsigned short i = 0; i < _polls_size; i++)
 		close(_fds[i].fd);
 	close(_fd);
-	std::cout << "END OF PROGRAM" << std::endl;
+	std::cout << "END OF PROGRAM\nServidor apagado correctamente!!!" << std::endl;
 };
 
 void Server::ServerSocketCreate()
@@ -153,7 +153,7 @@ void Server::ReceiveNewData(int fd)
 	{ //-> print the received data
 		buff[bytes] = '\0';
 		std::cout << "Client <" << fd << "> Data: " << buff;
-		send(fd, buff, 0, sizeof(buff));
+		send(fd, buff, sizeof(buff), 0);
 		// here you can add your code to process the received data: parse, check, authenticate, handle the command, etc...
 	}
 }

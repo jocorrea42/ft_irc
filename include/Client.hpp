@@ -21,6 +21,7 @@ private:
 	int _fd;
 	std::string _ip_add;
 	std::string	_nickName;
+	std::string	_buffer;
 
 public:
 	Client(){std::cout << "se construyo un nuevo cliente vacio\n";}
@@ -33,6 +34,8 @@ public:
 	void	setIp(std::string ip) { this->_ip_add = ip; }
 	void	setFd(int fd) { this->_fd = fd; }
 	void	setNickName(std::string	nick){this->_nickName = nick;}
+	void	setBuffer(std::string buffer){this->_buffer = buffer;}
+	std::string getBuffer(){return (this->_buffer);}
 	int		getFd() { return this->_fd; }
 	std::string	getNickName(){return (this->_nickName);}
 	std::string getIp() { return this->_ip_add; }

@@ -12,18 +12,30 @@
 
 #include "../include/Server.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
-    Server irc_server;
-    try
+    Server ircserv;
+
+    if (argc != 3)
     {
-        signal(SIGINT, irc_server.SignalHandler); //-> catch the signal (ctrl + c)
-		signal(SIGQUIT, irc_server.SignalHandler); //-> catch the signal (ctrl + \)
-        irc_server.ServerStart(4444);
-    }catch(const std::exception &e)
+        std::cerr << "Usage:  ./ircserv <port> <password>" << std::endl;
+        return (0);
+    }
+    else
     {
-        irc_server.CloseFds();
-        std::cerr << e.what() << std::endl;
-    }  
-    std::cout << "The Server Closed!" << std::endl;
+        try
+        {
+            signal(SIGINT, ircserv.SignalHandler);  //-> catch the signal (ctrl + c)
+            signal(SIGQUIT, ircserv.SignalHandler); //-> catch the signal (ctrl + \)
+            ircserv.setPassword(std::string(argv[2]));
+            ircserv.ServerStart(atoi(argv[1]));
+        }
+        catch (const std::exception &e)
+        {
+            ircserv.CloseFds();
+            std::cerr << e.what() << std::endl;
+        }
+        std::cout << "The Server Closed!" << std::endl;
+    }
+    return (0);
 }
