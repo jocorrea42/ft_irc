@@ -27,12 +27,14 @@ int main(int argc, char **argv)
         {
             signal(SIGINT, ircserv.SignalHandler);  //-> catch the signal (ctrl + c)
             signal(SIGQUIT, ircserv.SignalHandler); //-> catch the signal (ctrl + \)
-            ircserv.setPassword(std::string(argv[2]));
-            ircserv.ServerStart(atoi(argv[1]));
+           
+            ircserv = Server(atoi(argv[1]), std::string(argv[2]));
+            ircserv.setPassword("ok");
+            ircserv.ServerStart();
         }
         catch (const std::exception &e)
         {
-            ircserv.CloseFds();
+            ircserv._CloseFds();
             std::cerr << e.what() << std::endl;
         }
         std::cout << "The Server Closed!" << std::endl;

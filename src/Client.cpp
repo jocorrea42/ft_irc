@@ -16,8 +16,25 @@ Client::Client(Client const &other){*this = other;}
 Client  &Client::operator=(Client const &other)
 {
     this->_fd = other._fd;
-    this->_ip_add = other._ip_add;
+    this->_ipAdd = other._ipAdd;
     this->_nickName = other._nickName;
-    std::cout << "se ha asignado un cliente:" << other._ip_add << ", fd:" << other._fd << std::endl;
+    std::cout << "se ha asignado un cliente:" << other._ipAdd << ", fd:" << other._fd << std::endl;
     return (*this);
-} 
+}
+
+void Client::nextStatus()
+{
+	if (_status == PASS)
+		_status = NICK;
+	else if (_status == NICK)
+		_status = USER;
+	else if (_status == USER)
+		_status = REG;
+}
+
+void    Client::sendMessage(std::string sms)
+{
+
+   int bytes = send(_fd, sms.c_str(), sms.length(), 0);
+
+}
