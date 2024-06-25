@@ -49,7 +49,7 @@ public:
 	void	setName(std::string name){this->_realname = name;}
 	void	setStatus(Status status){this->_status = status;}
 	void	nextStatus();
-
+	void	cleanBuffer();
 	Status			getStatus(){return (this->_status);}
 	std::string getName(){return (this->_realname);}
 	std::string	getUser(){return (this->_user);}

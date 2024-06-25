@@ -53,10 +53,8 @@ void Server::ServerStart()
 	if (listen(_fd, SOMAXCONN) == -1) //-> listen for incoming connections and making the socket a passive socket
 		throw(std::runtime_error("listen() faild"));
 	addPollfd(_fd);
-
 	std::cout << "IRC SERVER <" << _fd << "> is listening!!!!!!!!" << std::endl;
 	std::cout << "Wait for clients...\n";
-
 	while (!(this->_Signal))											 //-> run the server until the signal is received
 	{																	 // poll(fdsarray, fdsarraysize, time) el time en -1 bloquea hasta que exita evento en el poll
 		if ((poll(&_fds[0], _polls_size, -1) == -1) && _Signal == false) // codigo para ver si ocurrio un evento
@@ -145,13 +143,20 @@ void Server::ReceiveNewData(int fd)
 		printParam(params);
 		if (command == std::string("PASS"))
 			_passAutentication(cli, params);
-		if (command == std::string("NICK"))
+		else if (command == std::string("NICK"))
 			_nickAutentication(cli, params);
-		if (command == std::string("USER"))
+		else if (command == std::string("USER"))
 			_userAutentication(cli, params);
-		if (command == std::string("PING"))
-			_cmdPingSend(cli, params);			
-		
+		else if (command == std::string("PING"))
+			_cmdPingSend(cli, params);
+		else
+		{ 
+			std::cout << "comando mal escrito" << std::endl;
+			cli->sendMessage("comando mal\n");			
+		}
+		cli->cleanBuffer();
+
+		params.clear();
 	}
 }
 void	Server::printParam(std::vector<std::string> params)
@@ -296,7 +301,6 @@ void Server::_passAutentication(Client *client, std::vector<std::string> params)
 	}
 	std::cout << "pasword ingresado correctamente\n";
 	client->nextStatus();
-
 }
 
 void Server::_nickAutentication(Client *client, std::vector<std::string> params)
@@ -314,13 +318,11 @@ void Server::_nickAutentication(Client *client, std::vector<std::string> params)
 	std::string new_nickname = params[0];
 	if (client->getStatus() == REG)
 	{
-		// Notify other users in the same channels about the nickname change
 		std::string nick_change_msg = ":" + client->getNickName() + " NICK " + new_nickname + "\r\n";
 		//_broadcast_to_all_clients_on_server(nick_change_msg);
 		client->setNickName(new_nickname);
 		return;
 	}
-
 	// if status is nick we proceed to user
 	if (client->getStatus() == NICK)
 	{
@@ -337,22 +339,17 @@ void		Server::_userAutentication(Client *client,std::vector<std::string> params)
 		std::cout << "esta en otro estado:" << client->getStatus() << std::endl;
 		return;
 	}
-
 	if (params.size() < 4)
 	{
-		std::cout << "los parmetros estan mal, no hay\n";
+		std::cout << "los parmetros estan mal, no hay deben ser:\n";
+		std::cout << "USER username hostname servername realname\n";
 		return;
 	}
-
 	std::string username = params[0];
 	std::string hostname = params[1];
 	std::string servername = params[2];
 	std::string realname = params[3];
-
 	// Ignore hostname and servername when USER comes from a directly connected client.
-	// They will be used only in server-to-server communication.
-
-	// Set the user's username and realname
 	client->setUser(username);
 	client->setName(realname);
 	std::cout << "BIENVENIDO " << client->getUser() << std::endl;
@@ -364,11 +361,10 @@ void		Server::_cmdPingSend(Client *client, std::vector<std::string> params)
 	if (params.size() < 1)
 	{
 		std::cout << "los parmetros estan mal, no hay\n";
+		client->sendMessage("los parmetros estan mal, no hay\n");
 		return;
 	}
-
 	std::string answer = params[0];
 	std::string response = "PONG " + answer + "\r\n";
-	// Send Pong
 	client->sendMessage(response);
 }

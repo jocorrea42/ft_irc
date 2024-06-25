@@ -38,3 +38,13 @@ void    Client::sendMessage(std::string sms)
    int bytes = send(_fd, sms.c_str(), sms.length(), 0);
 
 }
+
+void Client::cleanBuffer()
+{
+    std::cout << "limpiando bufer: " << this->_outBuffer << std::endl;
+    _outBuffer.clear();
+	//std::string::size_type index = this->_outBuffer.find(std::string("\r\n"));
+	//if (index != std::string::npos)
+	//	this->_outBuffer.erase(0, index);
+    std::cout << "limpio bufer: " << this->_outBuffer << std::endl;
+}
