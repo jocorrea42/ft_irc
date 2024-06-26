@@ -1,32 +1,58 @@
-NAME_BOUNUS = bot
-NAME = ircserv
-CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
-INCLUDE = -Iinclude/Server.hpp include/Channel.hpp include/Client.hpp
-SRCS = src/Server.cpp src/Client.cpp src/Channel.cpp src/main.cpp 
+NAME		=	ircserv
+CPPFLAGS	=	-I $(INC_DIR) -Wall -Wextra -Werror -std=c++98 -MMD
+SRC_DIR		=	src/
+INC_DIR		=	./include/
+OBJ_DIR		=	obj/
+SRC			=	$(wildcard $(SRC_DIR)*.cpp)
+OBJ			=	$(patsubst $(SRC_DIR)%.cpp,$(OBJ_DIR)%.o,$(SRC))
+DEP			=	$(patsubst $(SRC_DIR)%.cpp,$(OBJ_DIR)%.d,$(SRC))
+CC			=	c++
+RM			=	rm -rf
 
-SRCS_BONUS = 
+################################# COLORS ########################################
 
-OBJS = $(SRCS:.cpp=.o)
-OBJS_BONUS = $(SRCS_BONUS:.cpp=.o)
+DEL_LINE =		\033[2K
+ITALIC =		\033[3m
+BOLD =			\033[1m
+DEF_COLOR =		\033[0;39m
+GRAY =			\033[0;90m
+RED =			\033[0;91m
+GREEN =			\033[0;92m
+YELLOW =		\033[0;93m
+BLUE =			\033[0;94m
+MAGENTA =		\033[0;95m
+CYAN =			\033[0;96m
+WHITE =			\033[0;97m
+BLACK =			\033[0;99m
+ORANGE =		\033[38;5;209m
+BROWN =			\033[38;2;184;143;29m
+DARK_GRAY =		\033[38;5;234m
+MID_GRAY =		\033[38;5;245m
+DARK_GREEN =	\033[38;2;75;179;82m
+DARK_YELLOW =	\033[38;5;143m
+
+################################################################################
 
 all: $(NAME)
 
-$(NAME): $(OBJS)
-	@$(CC) $(CFLAGS) -o $(NAME) $(OBJS)
+$(OBJ_DIR)%.o : $(SRC_DIR)%.cpp | $(OBJ_DIR)
+	$(CC) $(CPPFLAGS) -c $< -o $@
 
-bonus: $(OBJS_BONUS)
-	@$(CC) $(CFLAGS) -o $(NAME_BOUNUS) $(OBJS_BONUS)
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
-%.o: %.cpp $(INCLUDE)
-	$(CC) $(CFLAGS) -c $< -o $@
+-include $(DEP)
+
+$(NAME): $(OBJ) Makefile
+	$(CC) $(CPPFLAGS) $(OBJ) -o $(NAME)
+	@echo "$(GREEN)\nCreated ${NAME} ✓$(DEF_COLOR)\n"
 
 clean:
-	@rm -f $(OBJS) $(OBJS_BONUS)
+	$(RM) $(OBJ_DIR)
 
 fclean: clean
-	@rm -f $(NAME) $(NAME_BOUNUS)
+	$(RM) $(NAME)
 
-re: fclean all
+re: fclean $(NAME)
 
 .PHONY: all clean fclean re

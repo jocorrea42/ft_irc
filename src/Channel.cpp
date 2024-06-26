@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  #+#  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024-05-23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024-05-23 08:12:02 by fili             ###   ########.fr       */
+/*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
+/*   Updated: 2024/06/26 02:06:51 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Channel.hpp"
+#include "Channel.hpp"
 
 // Channel();
 //     ~Channel();

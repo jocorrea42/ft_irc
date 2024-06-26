@@ -1,25 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Clien.cpp                                          :+:      :+:    :+:   */
+/*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  #+#  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024-05-21 08:25:16 by fili              #+#    #+#             */
-/*   Updated: 2024-05-21 08:25:16 by fili             ###   ########.fr       */
+/*   Created: 2024/05/21 08:25:16 by fili              #+#    #+#             */
+/*   Updated: 2024/06/26 02:06:43 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Client.hpp"
+#include "Client.hpp"
 
-Client::Client(Client const &other){*this = other;}
-Client  &Client::operator=(Client const &other)
+Client::Client(Client const &other) { *this = other; }
+Client &Client::operator=(Client const &other)
 {
-    this->_fd = other._fd;
-    this->_ipAdd = other._ipAdd;
-    this->_nickName = other._nickName;
-    std::cout << "se ha asignado un cliente:" << other._ipAdd << ", fd:" << other._fd << std::endl;
-    return (*this);
+	this->_fd = other._fd;
+	this->_ipAdd = other._ipAdd;
+	this->_nickName = other._nickName;
+	std::cout << "se ha asignado un cliente:" << other._ipAdd << ", fd:" << other._fd << std::endl;
+	return (*this);
 }
 
 void Client::nextStatus()
@@ -35,8 +35,8 @@ void Client::nextStatus()
 void    Client::sendMessage(std::string sms)
 {
 
-   int bytes = send(_fd, sms.c_str(), sms.length(), 0);
-
+	int bytes = send(_fd, sms.c_str(), sms.length(), 0);
+	(void)bytes;
 }
 
 void Client::cleanBuffer()

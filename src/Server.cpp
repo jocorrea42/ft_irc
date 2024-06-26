@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  #+#  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024-05-21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024-05-21 08:18:50 by fili             ###   ########.fr       */
+/*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
+/*   Updated: 2024/06/26 02:07:01 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Server.hpp"
+#include "Server.hpp"
 
 Server::Server()
 {

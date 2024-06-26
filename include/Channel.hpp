@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  #+#  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024-05-23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024-05-23 08:05:05 by fili             ###   ########.fr       */
+/*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
+/*   Updated: 2024/06/26 02:07:25 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CHANNEL_HPP
-#define CHANNEL_HPP
+# define CHANNEL_HPP
 
-#include "Client.hpp"
+# include "Client.hpp"
 
 class Client;
 

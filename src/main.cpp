@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  #+#  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024-05-23 08:30:22 by fili              #+#    #+#             */
-/*   Updated: 2024-05-23 08:30:22 by fili             ###   ########.fr       */
+/*   Created: 2024/05/23 08:30:22 by fili              #+#    #+#             */
+/*   Updated: 2024/06/26 02:06:56 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Server.hpp"
+#include "Server.hpp"
 
 int main(int argc, char **argv)
 {
