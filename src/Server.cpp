@@ -92,7 +92,7 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 		throw(std::runtime_error("faild accept client"));
 	if (fcntl(inConectionFd, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
-	_clients.push_back(Client(inConectionFd, inet_ntoa((_clientadd.sin_addr)))); //-> add the client to the vector of clients
+	_clients.push_back(*(new Client(inConectionFd, inet_ntoa((_clientadd.sin_addr))))); //-> add the client to the vector of clients
 	addPollfd(inConectionFd);													 // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
 	std::cout << "Client <" << inConectionFd << "> Connected!!!" << std::endl;
 }
@@ -149,6 +149,8 @@ void Server::ReceiveNewData(int fd)
 			_userAutentication(cli, params);
 		else if (command == std::string("PING"))
 			_cmdPingSend(cli, params);
+		else if (command == std::string("CAP"))
+			_cmdCap(cli, params);
 		else
 		{ 
 			std::cout << "comando mal escrito" << std::endl;
@@ -367,4 +369,11 @@ void		Server::_cmdPingSend(Client *client, std::vector<std::string> params)
 	std::string answer = params[0];
 	std::string response = "PONG " + answer + "\r\n";
 	client->sendMessage(response);
+}
+
+void		Server::_cmdCap(Client *client, std::vector<std::string> params)
+{
+	std::cout << "Cap command created with passed clientFd of " << client->getFd() << std::endl;
+	if (params.size())
+		std::cout << "Cap command created with passed clientFd of " << client->getFd() << std::endl;
 }

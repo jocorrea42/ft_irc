@@ -52,6 +52,7 @@ private:
 	void		_userAutentication(Client *client,std::vector<std::string> params);
 	void		_passAutentication(Client *client,std::vector<std::string> params);
 	void		_cmdPingSend(Client *client, std::vector<std::string> params);
+	void		_cmdCap(Client *client, std::vector<std::string> params);
 
 public:
 	Server(); //-> default constructor

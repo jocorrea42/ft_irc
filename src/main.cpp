@@ -14,8 +14,6 @@
 
 int main(int argc, char **argv)
 {
-    Server ircserv;
-
     if (argc != 3)
     {
         std::cerr << "Usage:  ./ircserv <port> <password>" << std::endl;
@@ -23,13 +21,11 @@ int main(int argc, char **argv)
     }
     else
     {
+        Server ircserv(atoi(argv[1]), std::string(argv[2]));
         try
         {
             signal(SIGINT, ircserv.SignalHandler);  //-> catch the signal (ctrl + c)
             signal(SIGQUIT, ircserv.SignalHandler); //-> catch the signal (ctrl + \)
-           
-            ircserv = Server(atoi(argv[1]), std::string(argv[2]));
-            ircserv.setPassword("ok");
             ircserv.ServerStart();
         }
         catch (const std::exception &e)
