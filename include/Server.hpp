@@ -29,6 +29,7 @@
 # include <iostream>
 # include <sstream>
 # include <cstdlib>
+# include <cerrno>
 
 class Client;
 class Channel;
@@ -45,7 +46,6 @@ private:
 	std::vector<struct pollfd> _fds; // son los fd de los clientes, con el objetivo de monitorear con poll
 	unsigned short	_polls_size; 
 	struct sockaddr_in _add;		  // estructura de datos relacionada con la configuracion del socket
-	struct sockaddr_in _clientadd; // lo mismo pero para un nuevo cliente conectado
 
 	void 		_ClearClient(int fd); //-> clear client
 	void		_nickAutentication(Client *client, std::vector<std::string> params);
@@ -53,6 +53,8 @@ private:
 	void		_passAutentication(Client *client,std::vector<std::string> params);
 	void		_cmdPingSend(Client *client, std::vector<std::string> params);
 	void		_cmdCap(Client *client, std::vector<std::string> params);
+	void		_cmdQuit(Client *client, std::vector<std::string> params);
+
 
 public:
 	Server(); //-> default constructor

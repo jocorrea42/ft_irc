@@ -12,7 +12,6 @@
 
 #include "Client.hpp"
 
-Client::Client(Client const &other) { *this = other; }
 Client &Client::operator=(Client const &other)
 {
 	this->_fd = other._fd;
@@ -32,19 +31,48 @@ void Client::nextStatus()
 		_status = REG;
 }
 
-void    Client::sendMessage(std::string sms)
+int    Client::sendOwnMessage()
 {
-
-	int bytes = send(_fd, sms.c_str(), sms.length(), 0);
-	(void)bytes;
+	int bytes = send(_fd, _outBuffer.c_str(), _outBuffer.length(), 0);
+	if (bytes == -1)
+	{
+		if (errno != EAGAIN && errno != EWOULDBLOCK)
+		{
+			// -1 == disconected client
+			return 0;
+		}
+	}
+	return (1);
 }
 
-void Client::cleanBuffer()
+void Client::cleanInBuffer()
 {
-    std::cout << "limpiando bufer: " << this->_outBuffer << std::endl;
-    _outBuffer.clear();
-	//std::string::size_type index = this->_outBuffer.find(std::string("\r\n"));
-	//if (index != std::string::npos)
-	//	this->_outBuffer.erase(0, index);
-    std::cout << "limpio bufer: " << this->_outBuffer << std::endl;
+    std::cout << "limpiando  primer comando de inbufer: " << this->_inBuffer << std::endl;
+   // _inBuffer.clear();
+	std::string::size_type index = this->_inBuffer.find(std::string("\r\n"));
+	if (index != std::string::npos)
+		this->_inBuffer.erase(0, index + 2);
+	std::cout << "el indice es: " << index << ", nuevo inbufer: " << this->_inBuffer << std::endl;
+}
+
+int		Client::receiveMessage()
+{
+	while (1)
+	{
+		char buff[1024] = {0}; //-> buffer for the received data
+
+		ssize_t bytes = recv(_fd, buff, sizeof(buff) - 1, 0); //-> receive the data
+		if (bytes <= 0)
+		{ //-> check if the client disconnected
+			if (errno == EWOULDBLOCK || errno == EAGAIN)
+				break;
+			else
+			{
+				std::cout << "Client <" << _fd << "> Disconnected" << std::endl;
+				return 0;
+			}
+		}
+		this->addInBuffer(buff);
+	}
+	return (1);
 }

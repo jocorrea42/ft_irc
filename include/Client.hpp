@@ -22,6 +22,7 @@ private:
 	//client tecnical data
 	Status			_status;
 	int 			_fd;
+	struct sockaddr_in _clientadd; 
 	std::string 	_ipAdd;
 	//user setting
 	std::string 	_user;
@@ -29,35 +30,41 @@ private:
 	std::string		_nickName;
 	// client messages
 	std::string		_outBuffer;
+	std::string		_inBuffer;
 	//channels
 	
 
 public:
 	Client(): _status(PASS){std::cout << "se construyo un nuevo cliente vacio\n";}
-	Client(std::string ip_add) :_status(PASS), _ipAdd(ip_add) {std::cout << "nuevo cliente con ip:" << _ipAdd << std::endl;}
-	Client(int fd) : _fd(fd) {std::cout << "nuevo cliente con fd:" << _fd << std::endl;}
-	Client(int fd, std::string ipadd) :_status(PASS), _fd(fd), _ipAdd(ipadd) {std::cout << "nuevo cliente con ip:" << _ipAdd << ", fd:" << _fd << std::endl;}
-	Client(Client const &other);
+	Client(int fd, sockaddr_in addr) :_status(PASS), _fd(fd),  _clientadd (addr) {this->_ipAdd = inet_ntoa(_clientadd.sin_addr); std::cout << "nuevo cliente con ip:" << _ipAdd << ", fd:" << _fd << std::endl;}
+	Client(Client const &other){*this = other;}
 	~Client(){std::cout << "se destruyo el cliente " << _nickName << std::endl;}
 	Client &operator=(Client const &other);
 
-	void	setIp(std::string ip) { this->_ipAdd = ip; }
-	void	setFd(int fd) { this->_fd = fd; }
-	void	setNickName(std::string	nick){this->_nickName = nick;}
-	void	setBuffer(std::string buffer){this->_outBuffer = buffer;}
-	void	setUser(std::string user){this->_user = user;}
-	void	setName(std::string name){this->_realname = name;}
-	void	setStatus(Status status){this->_status = status;}
-	void	nextStatus();
-	void	cleanBuffer();
-	Status			getStatus(){return (this->_status);}
-	std::string getName(){return (this->_realname);}
-	std::string	getUser(){return (this->_user);}
-	std::string getBuffer(){return (this->_outBuffer);}
-	int		getFd() { return this->_fd; }
-	std::string	getNickName(){return (this->_nickName);}
-	std::string getIp() { return this->_ipAdd; }
-	void	addBuffer(char *buff){ this->_outBuffer += std::string(buff);}
-	void	sendMessage(std::string sms);
+	void		setIp(std::string ip) { this->_ipAdd = ip; }
+	void		setFd(int fd) { this->_fd = fd; }
+	void		setNickName(std::string	nick){ this->_nickName = nick;}
+	void		setOutBuffer(std::string outbuffer){ this->_outBuffer = outbuffer;}
+	void		setInBuffer(std::string inbuffer){ this->_inBuffer = inbuffer;}
+	void		setUser(std::string user){ this->_user = user;}
+	void		setName(std::string name){ this->_realname = name;}
+	void		setStatus(Status status){ this->_status = status;}
+
+	int			getFd(){ return this->_fd; }
+	Status		getStatus(){ return (this->_status);}
+	std::string getName(){ return (this->_realname);}
+	std::string	getUser(){ return (this->_user);}
+	std::string getOutBuffer(){ return (this->_outBuffer);}
+	std::string getInBuffer(){ return (this->_inBuffer);}
+	std::string	getNickName(){ return (this->_nickName);}
+	std::string getIp(){ return this->_ipAdd; }
+
+	void		nextStatus();
+	void		cleanInBuffer();
+	void		addOutBuffer(char *msg){ this->_outBuffer += std::string(msg);}
+	void		addOutBuffer(std::string msg){ this->_outBuffer += msg;}
+	void		addInBuffer(char *msg){ this->_inBuffer += std::string(msg);}
+	int			sendOwnMessage();//el cliente envia el mensaje conformado por el server almacenado en su buffer de salida
+	int			receiveMessage();//el cliente recibe un mensaje desde su fd y lo almacena en su buffer de entrada
 };
 #endif
