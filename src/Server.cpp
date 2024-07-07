@@ -41,6 +41,7 @@ void Server::ServerStart()
 {
 	unsigned short revents;
 	int opt_val = 1;
+	Client *cli;
 	// config and create socket
 	if ((_fd = socket(_add.sin_family, SOCK_STREAM, 0)) == -1) //-> create the server socket and check if the socket is created
 		throw(std::runtime_error("faild to create socket"));
@@ -68,6 +69,7 @@ void Server::ServerStart()
 			{
 				std::cout << "unexpected client disconnection\n";
 				_ClearClient(_fds[i].fd);
+				continue;
 			}
 			if (revents & POLLIN) // si el and es uno es por que revents es POLLIN o sea hay entrada para ser leida
 			{
@@ -81,12 +83,12 @@ void Server::ServerStart()
 		{
 			if (_fds[i].fd != _fd)
 			{
-				Client *cli = getClient((int)_fds[i].fd);
+				cli = getClient((int)_fds[i].fd);
 				if (cli->getOutBuffer().size())
 				{
 					if (cli->sendOwnMessage())
 					{
-						cli->setOutBuffer("");
+						cli->cleanOutBuffer();
 					}
 					else
 					{
@@ -102,7 +104,7 @@ void Server::ServerStart()
 
 void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 {
-	std::cout << "Client conection!!!!!\n";
+	std::cout << "NEW CLIENT CONNECTION !!!!\n";
 	int inConectionFd;
 	struct sockaddr_in clientadd; // lo mismo pero para un nuevo cliente conectado
 	socklen_t len = sizeof(clientadd);
@@ -113,7 +115,7 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
 	_clients.push_back(*(new Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
 	addPollfd(inConectionFd);									 // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
-	std::cout << "Client <" << inConectionFd << "> Connected!!!" << std::endl;
+	std::cout << "CLIENT <" << inConectionFd << "> IS CONNECTED!!!" << std::endl;
 }
 
 void Server::ReceiveNewData(int fd)
@@ -130,9 +132,9 @@ void Server::ReceiveNewData(int fd)
 		_ClearClient(_fd); //-> clear the client
 		return;
 	}
-	std::cout << "Buffer: --" << cli->getInBuffer() << " --FIN--" << " r y n : " << cli->getInBuffer().find_first_of("\r\n") << std::endl;
+	// std::cout << "Buffer: --" << cli->getInBuffer() << " --FIN--" << " r y n : " << cli->getInBuffer().find_first_of("\r\n") << std::endl;
 	std::string line = cli->getInBuffer();
-	while (line.size())
+	while (line.size() > 0)
 	{
 		sms = line.substr(0, line.find("\r\n"));
 		line.erase(0, line.find("\r\n") + 2);
@@ -160,7 +162,7 @@ void Server::ReceiveNewData(int fd)
 		} // Remove trailing \r from the last parameter
 		if (!params.empty() && !params[params.size() - 1].empty() && params[params.size() - 1][params[params.size() - 1].size() - 1] == '\r')
 			params[params.size() - 1].resize(params[params.size() - 1].size() - 1);
-		printParam(params);
+		// printParam(params);
 		if (command == std::string("PASS"))
 			_passAutentication(cli, params);
 		else if (command == std::string("NICK"))
@@ -173,12 +175,13 @@ void Server::ReceiveNewData(int fd)
 			_cmdCap(cli, params);
 		else if (command == std::string("QUIT"))
 			_cmdQuit(cli, params);
-		else
-		{
+		else if (command == std::string("MODE"))
 			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
-		}
-		cli->setInBuffer("");
+		//_cmdQuit(cli, params);
+		else
+			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
 	}
+	cli->sendOwnMessage();
 }
 
 void Server::printParam(std::vector<std::string> params)
@@ -287,20 +290,20 @@ void Server::_CloseFds()
 	{ //-> close all the clients
 		std::cout << "Client <" << _clients[i].getFd() << "> Disconnected" << std::endl;
 		close(_clients[i].getFd());
+		_clients.erase(_clients.begin() + i);
 	}
 	if (_fd != -1)
 	{ //-> close the server socket
 		std::cout << "Server <" << _fd << "> Disconnected" << std::endl;
 		close(_fd);
 	}
+	_clients.clear();
 }
 
 bool Server::_Signal = false;
 void Server::SignalHandler(int signum)
 {
-	(void)signum;
-	std::cout << std::endl
-			  << "Signal Received!" << std::endl;
+	(void)signum;	// std::cout << std::endl << "Signal Received!" << std::endl;
 	_Signal = true; //-> set the static boolean to true to stop the server
 }
 
@@ -327,90 +330,43 @@ void Server::_passAutentication(Client *client, std::vector<std::string> params)
 
 void Server::_nickAutentication(Client *client, std::vector<std::string> params)
 {
-	// if (client->getStatus() == PASS)
-	//{
-	//	std::cout << "esta en otro estado:" << client->getStatus() << std::endl;
-	//	return;
-	// }
-	// if (params.size() == 0)
-	//{
-	//	std::cout << "los parmetros estan mal, no hay\n";
-	//	return;
-	// }
-	std::string new_nickname = params[0];
-	// if (client->getStatus() == REG)
-	//	{
-	std::string nick_change_msg = ": " + client->getNickName() + " NICK " + new_nickname + "\r\n";
+	client->addOutBuffer(": " + client->getNickName() + " NICK " + params[0] + "\r\n");
 	//_broadcast_to_all_clients_on_server(nick_change_msg);
-	client->setNickName(new_nickname);
-	//	return;
-	//	}
-	// if status is nick we proceed to user
-	// if (client->getStatus() == NICK)
-	//{
-	client->setNickName(new_nickname);
-	std::cout << "hola " << new_nickname << std::endl;
-	//	client->nextStatus();
-	//}
+	client->setNickName(params[0]);
 }
 
 void Server::_userAutentication(Client *client, std::vector<std::string> params)
 {
-	// if (client->getStatus() != USER)
-	// {
-	// 	std::cout << "esta en otro estado:" << client->getStatus() << std::endl;
-	// 	return;
-	// }
-	// if (params.size() < 4)
-	// {
-	// 	std::cout << "los parmetros estan mal, no hay deben ser:\n";
-	// 	std::cout << "USER username hostname servername realname\n";
-	// 	return;
-	// }
 	std::string nickname = params[0];
 	std::string username = params[1];
-	std::string realname = params[2];
-	std::string servername = params[3];
-
-	std::cout << "los parametros son: " << nickname << ", " << username << ", " << realname << ", " << servername << std::endl;
+	std::string realname = params[3];
+	std::string servername = params[2];
 	// Ignore hostname and servername when USER comes from a directly connected client.
 	client->setUser(username);
 	client->setNickName(nickname);
 	client->setName(realname);
 	std::cout << "BIENVENIDO " << client->getUser() << std::endl;
-
 	std::string rpl_welcome_msg = "001 " + nickname + " :Welcome to the Internet Relay Network " + nickname + "!" + username + "@" + realname + "\r\n";
 	client->addOutBuffer(std::string(rpl_welcome_msg));
-
 	// Send RPL_YOURHOST: 002
 	std::string rpl_yourhost_msg = "002 " + nickname + " :Your host is " + servername + ", running version 1.0\r\n";
 	client->addOutBuffer(std::string(rpl_yourhost_msg));
-
 	// Send RPL_CREATED: 003
-	std::string rpl_created_msg = "003 " + nickname + " :This server was created " + "10/10/10" + "\r\n";
+	std::string rpl_created_msg = "003 " + nickname + " :This server was created POR GERONIMA" + "\r\n";
 	client->addOutBuffer(std::string(rpl_created_msg));
-
 	// Send RPL_MYINFO: 004
 	std::string rpl_myinfo_msg = "004 " + nickname + " " + servername + " 1.0 o o\r\n";
 	client->addOutBuffer(std::string(rpl_myinfo_msg));
-
-	client->sendOwnMessage();
 	client->nextStatus();
 }
 
 void Server::_cmdPingSend(Client *client, std::vector<std::string> params)
 {
-	if (params.size() < 1)
-	{
-		std::cout << "los parmetros estan mal, no hay\n";
-		client->addOutBuffer(std::string("los parmetros estan mal, no hay\n"));
-		client->sendOwnMessage();
-		return;
-	}
 	std::string answer = params[0];
 	std::string response = "PONG " + answer + "\r\n";
 	client->addOutBuffer(response);
-	client->sendOwnMessage();
+	// client->sendOwnMessage();
+	// client->cleanOutBuffer();
 }
 
 void Server::_cmdCap(Client *client, std::vector<std::string> params)
@@ -422,17 +378,12 @@ void Server::_cmdCap(Client *client, std::vector<std::string> params)
 	}
 	else
 		client->addOutBuffer(std::string("421 * CAP :Unknown command\r\n"));
-	client->sendOwnMessage();
 }
 
 void Server::_cmdQuit(Client *client, std::vector<std::string> params)
 {
 	std::string message = "Client Quit";
 	if (params.size() >= 1)
-	{
 		message = params[0];
-	}
 	client->setOutBuffer(message);
-	client->sendOwnMessage();
-	_ClearClient(client->getFd());
 }

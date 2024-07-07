@@ -61,6 +61,8 @@ public:
 
 	void		nextStatus();
 	void		cleanInBuffer();
+	void		cleanOutBuffer();
+	void		removeFirstInCmd();
 	void		addOutBuffer(char *msg){ this->_outBuffer += std::string(msg);}
 	void		addOutBuffer(std::string msg){ this->_outBuffer += msg;}
 	void		addInBuffer(char *msg){ this->_inBuffer += std::string(msg);}

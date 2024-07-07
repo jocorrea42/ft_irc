@@ -17,7 +17,13 @@ Client &Client::operator=(Client const &other)
 	this->_fd = other._fd;
 	this->_ipAdd = other._ipAdd;
 	this->_nickName = other._nickName;
-	std::cout << "se ha asignado un cliente:" << other._ipAdd << ", fd:" << other._fd << std::endl;
+	this->_user = other._user;
+	this->_realname = other._realname;
+	this->_inBuffer = other._inBuffer;
+	this->_outBuffer = other._outBuffer;
+	this->_clientadd = other._clientadd;
+	this->_status = other._status;
+	std::cout << "Asignacion del Cliente:" << other._ipAdd << ", fd:" << other._fd << std::endl;
 	return (*this);
 }
 
@@ -33,35 +39,49 @@ void Client::nextStatus()
 
 int    Client::sendOwnMessage()
 {
-	int bytes = send(_fd, _outBuffer.c_str(), _outBuffer.length(), 0);
-	if (bytes == -1)
+	int ret = send(_fd, NULL, 0, 0);
+	if (ret == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
 	{
-		if (errno != EAGAIN && errno != EWOULDBLOCK)
-		{
-			// -1 == disconected client
-			return 0;
-		}
+		// The writing operation would block
+		return 0;
 	}
-	return (1);
+	else if (ret == -1)
+	{
+		// -1 == disconected client
+		return 0;
+	}
+	int bytes = send(_fd, _outBuffer.c_str(), _outBuffer.length(), 0);
+	if (bytes == -1 && errno != EAGAIN && errno != EWOULDBLOCK)// -1 == disconected client
+			return 0;///mal
+	//_outBuffer.clear();
+	return (1);//bien
 }
 
-void Client::cleanInBuffer()
-{
-    std::cout << "limpiando  primer comando de inbufer: " << this->_inBuffer << std::endl;
-   // _inBuffer.clear();
+void Client::removeFirstInCmd()
+{ 
 	std::string::size_type index = this->_inBuffer.find(std::string("\r\n"));
 	if (index != std::string::npos)
 		this->_inBuffer.erase(0, index + 2);
-	std::cout << "el indice es: " << index << ", nuevo inbufer: " << this->_inBuffer << std::endl;
+}
+void	Client::cleanInBuffer()
+{
+	this->_inBuffer.clear();
+}
+
+void	Client::cleanOutBuffer()
+{
+	this->_outBuffer.clear();
 }
 
 int		Client::receiveMessage()
 {
-	while (1)
-	{
-		char buff[1024] = {0}; //-> buffer for the received data
+	char buff[1024];
+	ssize_t bytes;
 
-		ssize_t bytes = recv(_fd, buff, sizeof(buff) - 1, 0); //-> receive the data
+	while (1)
+	{   //-> buffer for the received data
+		memset(&buff, 0, sizeof(buff));
+		bytes = recv(_fd, buff, sizeof(buff) - 1, 0); //-> receive the data
 		if (bytes <= 0)
 		{ //-> check if the client disconnected
 			if (errno == EWOULDBLOCK || errno == EAGAIN)
