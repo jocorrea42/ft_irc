@@ -311,32 +311,71 @@ void Server::_passAutentication(Client *client, std::vector<std::string> params)
 {
 	if (client->getStatus() != PASS)
 	{
-		std::cout << "esta en otro estado:" << client->getStatus() << std::endl;
+		client->addOutBuffer(std::string("462 * :You may not reregister\r\n"));
 		return;
 	}
 	if (params.size() < 1)
 	{
-		std::cout << "los parmetros estan mal, no hay\n";
+		client->addOutBuffer(std::string("461 " + client->getNickName() + " PASS :Not enough parameters\r\n"));
 		return;
 	}
 	if (params[0] != this->_pass)
 	{
-		std::cout << "pasword incorrecto\n";
+		client->addOutBuffer(std::string("464 * :Password incorrect\r\n"));
 		return;
 	}
 	std::cout << "pasword ingresado correctamente\n";
 	client->nextStatus();
 }
 
+bool Server::_nickNameOk(const std::string& nickname)
+{
+	// vemos que se cumpla el protocolo
+	if (nickname.empty() || nickname.length() > 9 || !std::isalpha(nickname[0]))
+		return false;
+	return true;
+}
+
 void Server::_nickAutentication(Client *client, std::vector<std::string> params)
 {
-	client->addOutBuffer(": " + client->getNickName() + " NICK " + params[0] + "\r\n");
+	if (client->getStatus() == PASS)
+	{
+		client->addOutBuffer(std::string("451 * :You have not registered\r\n"));
+		return;
+	}
+
+	if (params.size() == 0)
+	{
+		client->addOutBuffer(std::string("431 * :No nickname given\r\n"));
+		return;
+	}
+	if (!_nickNameOk(params[0]))
+	{
+		client->addOutBuffer(std::string("432 * " + params[0] + " :Erroneous nickname\r\n"));
+		return;
+	}
+	if (client->getStatus() == REG)
+		return;
+	client->addOutBuffer(std::string(": " + client->getNickName() + " NICK " + params[0] + "\r\n"));
 	//_broadcast_to_all_clients_on_server(nick_change_msg);
 	client->setNickName(params[0]);
+	if (client->getStatus() == NICK)
+		client->nextStatus();
 }
 
 void Server::_userAutentication(Client *client, std::vector<std::string> params)
 {
+	if (client->getStatus() != USER)
+	{
+		client->addOutBuffer(std::string("462 * :You may not reregister\r\n"));
+		return;
+	}
+
+	if (params.size() < 4)
+	{
+		client->addOutBuffer("461 " + client->getNickName() + " USER :Not enough parameters\r\n");
+		return;
+	}
 	std::string nickname = params[0];
 	std::string username = params[1];
 	std::string realname = params[3];
@@ -345,7 +384,7 @@ void Server::_userAutentication(Client *client, std::vector<std::string> params)
 	client->setUser(username);
 	client->setNickName(nickname);
 	client->setName(realname);
-	std::cout << "BIENVENIDO " << client->getUser() << std::endl;
+	//std::cout << "BIENVENIDO " << client->getUser() << std::endl;
 	std::string rpl_welcome_msg = "001 " + nickname + " :Welcome to the Internet Relay Network " + nickname + "!" + username + "@" + realname + "\r\n";
 	client->addOutBuffer(std::string(rpl_welcome_msg));
 	// Send RPL_YOURHOST: 002

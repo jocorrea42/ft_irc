@@ -30,6 +30,7 @@ public:
     ~Channel(){};
     Channel(Channel const &other){*this = other;}
     Channel &operator=(Channel const &other);
+    Channel(std::string name): _name(name){}
     void SetPassword(std::string password){this->_password = password;}
     void SetName(std::string name){this->_name = name;}
     std::string GetPassword(){return this->_password;}

@@ -54,7 +54,7 @@ private:
 	void		_cmdPingSend(Client *client, std::vector<std::string> params);
 	void		_cmdCap(Client *client, std::vector<std::string> params);
 	void		_cmdQuit(Client *client, std::vector<std::string> params);
-
+	bool		_nickNameOk(const std::string& nickname);
 
 public:
 	Server(); //-> default constructor
