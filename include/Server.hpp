@@ -55,6 +55,8 @@ private:
 	void		_cmdCap(Client *client, std::vector<std::string> params);
 	void		_cmdQuit(Client *client, std::vector<std::string> params);
 	bool		_nickNameOk(const std::string& nickname);
+	void		_cmdMode(Client *client, std::vector<std::string> params);
+	void		_cmdChannelMode(Client *client, std::vector<std::string> params);
 
 public:
 	Server(); //-> default constructor

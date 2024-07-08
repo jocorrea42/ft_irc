@@ -328,7 +328,7 @@ void Server::_passAutentication(Client *client, std::vector<std::string> params)
 	client->nextStatus();
 }
 
-bool Server::_nickNameOk(const std::string& nickname)
+bool Server::_nickNameOk(const std::string &nickname)
 {
 	// vemos que se cumpla el protocolo
 	if (nickname.empty() || nickname.length() > 9 || !std::isalpha(nickname[0]))
@@ -352,6 +352,11 @@ void Server::_nickAutentication(Client *client, std::vector<std::string> params)
 	if (!_nickNameOk(params[0]))
 	{
 		client->addOutBuffer(std::string("432 * " + params[0] + " :Erroneous nickname\r\n"));
+		return;
+	}
+	if (getClientNick(params[0]))
+	{
+		client->addOutBuffer(std::string("433 * " + params[0] + " :Nickname is already in use\r\n"));
 		return;
 	}
 	if (client->getStatus() == REG)
@@ -384,28 +389,25 @@ void Server::_userAutentication(Client *client, std::vector<std::string> params)
 	client->setUser(username);
 	client->setNickName(nickname);
 	client->setName(realname);
-	//std::cout << "BIENVENIDO " << client->getUser() << std::endl;
-	std::string rpl_welcome_msg = "001 " + nickname + " :Welcome to the Internet Relay Network " + nickname + "!" + username + "@" + realname + "\r\n";
-	client->addOutBuffer(std::string(rpl_welcome_msg));
+	client->addOutBuffer(std::string("001 " + nickname + " :Welcome to the Internet Relay Network " + nickname + "!" + username + "@" + realname + "\r\n"));
 	// Send RPL_YOURHOST: 002
-	std::string rpl_yourhost_msg = "002 " + nickname + " :Your host is " + servername + ", running version 1.0\r\n";
-	client->addOutBuffer(std::string(rpl_yourhost_msg));
+	client->addOutBuffer(std::string("002 " + nickname + " :Your host is " + servername + ", running version 1.0\r\n"));
 	// Send RPL_CREATED: 003
-	std::string rpl_created_msg = "003 " + nickname + " :This server was created POR GERONIMA" + "\r\n";
-	client->addOutBuffer(std::string(rpl_created_msg));
+	client->addOutBuffer(std::string("003 " + nickname + " :This server was created POR GERONIMA" + "\r\n"));
 	// Send RPL_MYINFO: 004
-	std::string rpl_myinfo_msg = "004 " + nickname + " " + servername + " 1.0 o o\r\n";
-	client->addOutBuffer(std::string(rpl_myinfo_msg));
+	client->addOutBuffer(std::string("004 " + nickname + " " + servername + " 1.0 o o\r\n"));
 	client->nextStatus();
 }
 
 void Server::_cmdPingSend(Client *client, std::vector<std::string> params)
 {
-	std::string answer = params[0];
-	std::string response = "PONG " + answer + "\r\n";
-	client->addOutBuffer(response);
-	// client->sendOwnMessage();
-	// client->cleanOutBuffer();
+	if (params.size() < 1)
+	{
+		client->addOutBuffer(std::string("409 * :No origin specified\r\n"));
+		return;
+	}
+	client->addOutBuffer(std::string("PONG " + params[0] + "\r\n"));
+	return;
 }
 
 void Server::_cmdCap(Client *client, std::vector<std::string> params)
@@ -425,4 +427,38 @@ void Server::_cmdQuit(Client *client, std::vector<std::string> params)
 	if (params.size() >= 1)
 		message = params[0];
 	client->setOutBuffer(message);
+}
+
+void Server::_cmdMode(Client *client, std::vector<std::string> params)
+{
+	if (client->getStatus() != REG)
+	{
+		client->addOutBuffer(std::string("451 * :You have not registered\r\n"));
+		return;
+	}
+
+	if (params.size() < 1)
+	{
+		client->addOutBuffer(std::string("461 " + client->getNickName() + " MODE :Not enough parameters\r\n"));
+		return;
+	}
+
+	std::string target = params[0];
+	if (target[0] == '#' || target[0] == '&') // Channel mode
+	{
+		_cmdChannelMode(client, params);
+	}
+	else // User mode
+	{
+		client->addOutBuffer(std::string("502 " + client->getNickName() + " :Cannot change mode for other users\r\n"));
+	}
+}
+
+void _cmdChannelMode(Client *client, std::vector<std::string> params)
+{
+	if (client->getStatus() != REG)
+	{
+		client->addOutBuffer(std::string("451 * :You have not registered\r\n"));
+		return;
+	}
 }
