@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/07/11 20:48:01 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/11 22:20:08 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,7 +196,7 @@ void Server::_cmdJoin(Client *client, std::vector<std::string> params)
 	if (!getChannel(params[0]))
 	{
 		addChannel(client, params);
-		client->addOutBuffer(std::string(params[0] + " created\nAdmin rights granted\r\n"));
+		client->addOutBuffer(std::string("#" + params[0] + " created\nAdmin rights granted\r\n"));
 		return;
 	}
 	Channel *channel = getChannel(params[0]);

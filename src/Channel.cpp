@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/07/11 20:45:39 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/11 22:18:50 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ bool Channel::isInvOnly()
 void Channel::add_client(Client *client)
 {
 	_clients.push_back(client);
-	client->addOutBuffer(std::string("You joined " + GetName() + " \r\n"));
+	client->addOutBuffer(std::string("You joined #" + GetName() + " \r\n"));
 }
 
 void Channel::add_admin(Client *client)
