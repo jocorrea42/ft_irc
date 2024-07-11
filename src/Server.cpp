@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/06/26 02:07:01 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/11 20:48:01 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,15 +44,15 @@ void Server::ServerStart()
 	Client *cli;
 	// config and create socket
 	if ((_fd = socket(_add.sin_family, SOCK_STREAM, 0)) == -1) //-> create the server socket and check if the socket is created
-		throw(std::runtime_error("faild to create socket"));
+		throw(std::runtime_error("failed to create socket"));
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)) == -1) //-> set the socket option (SO_REUSEADDR) to reuse the address
-		throw(std::runtime_error("faild to set option (SO_REUSEADDR) on socket"));
+		throw(std::runtime_error("failed to set option (SO_REUSEADDR) on socket"));
 	if (fcntl(_fd, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
-		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket"));
+		throw(std::runtime_error("failed to set option (O_NONBLOCK) on socket"));
 	if (bind(_fd, reinterpret_cast<struct sockaddr *>(&_add), sizeof(_add)) == -1) //-> bind the socket to the address
-		throw(std::runtime_error("faild to bind socket"));
+		throw(std::runtime_error("failed to bind socket"));
 	if (listen(_fd, SOMAXCONN) == -1) //-> listen for incoming connections and making the socket a passive socket
-		throw(std::runtime_error("listen() faild"));
+		throw(std::runtime_error("listen() failed"));
 	addPollfd(_fd);
 	std::cout << "IRC SERVER <" << _fd << "> I AM ALIVE" << std::endl;
 	std::cout << "SERVER WAIT FOR CLIENT CONNECTIONS .......\n";
@@ -175,6 +175,8 @@ void Server::ReceiveNewData(int fd)
 			_cmdCap(cli, params);
 		else if (command == std::string("QUIT"))
 			_cmdQuit(cli, params);
+		else if (command == "JOIN")
+			_cmdJoin(cli, params);
 		else if (command == std::string("MODE"))
 			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
 		//_cmdQuit(cli, params);
@@ -182,6 +184,48 @@ void Server::ReceiveNewData(int fd)
 			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
 	}
 	cli->sendOwnMessage();
+}
+
+void Server::_cmdJoin(Client *client, std::vector<std::string> params)
+{
+	if (params.empty())
+	{
+		client->addOutBuffer(std::string("Usage: JOIN [name] [password]\r\n"));
+		return;
+	}
+	if (!getChannel(params[0]))
+	{
+		addChannel(client, params);
+		client->addOutBuffer(std::string(params[0] + " created\nAdmin rights granted\r\n"));
+		return;
+	}
+	Channel *channel = getChannel(params[0]);
+	if (channel->getClient(client->getNickName()))
+		client->addOutBuffer(std::string("You alredy joined this channel\r\n"));
+	else if (!channel->isInvOnly())
+	{
+		if (channel->GetPassword().empty())
+			channel->add_client(client);
+		else if (params.size() > 1)
+		{
+			if (params[1] == channel->GetPassword())
+				channel->add_client(client);
+			else
+				client->addOutBuffer(std::string("Incorrect password\r\n"));
+		}
+	}
+	else if (channel->isInvited(client->getFd()))
+		channel->add_client(client);
+	else
+		client->addOutBuffer(std::string("You need an invitation in order to join this channel\r\n"));
+}
+
+void Server::addChannel(Client *client, const std::vector<std::string> &params)
+{
+	if (params.size() == 1)
+		_channels.push_back(Channel(params[0], client));
+	else
+		_channels.push_back(Channel(params[0], params[1], client));
 }
 
 void Server::printParam(std::vector<std::string> params)
@@ -260,13 +304,21 @@ Client *Server::getClientNick(std::string nickname)
 	return NULL;
 }
 
-void Server::RemoveChannel(std::string name)
+Channel *Server::getChannel(const std::string &name)
 {
-	for (size_t i = 0; i < this->_channels.size(); i++)
-		if (this->_channels[i].GetName() == name)
+	for (std::vector<Channel>::iterator i = _channels.begin(); i != _channels.end(); ++i)
+		if (i->GetName() == name)
+			return &(*i);
+	return NULL;
+}
+
+void Server::RemoveChannel(const std::string &name)
+{
+	for (std::vector<Channel>::iterator i = _channels.begin(); i != _channels.end(); ++i)
+		if (i->GetName() == name)
 		{
-			this->_channels.erase(this->_channels.begin() + i);
-			break;
+			_channels.erase(i);
+			return;
 		}
 }
 
@@ -456,6 +508,7 @@ void Server::_cmdMode(Client *client, std::vector<std::string> params)
 
 void _cmdChannelMode(Client *client, std::vector<std::string> params)
 {
+	(void)params;
 	if (client->getStatus() != REG)
 	{
 		client->addOutBuffer(std::string("451 * :You have not registered\r\n"));

@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/06/26 02:07:51 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/11 19:49:11 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ private:
 	bool		_nickNameOk(const std::string& nickname);
 	void		_cmdMode(Client *client, std::vector<std::string> params);
 	void		_cmdChannelMode(Client *client, std::vector<std::string> params);
+	void		_cmdJoin(Client *client, std::vector<std::string> params);
 
 public:
 	Server(); //-> default constructor
@@ -73,6 +74,7 @@ public:
 	void 		setPort(int port);
 	void 		setPassword(std::string pass);
 	void 		addClient(Client newClient);
+	void		addChannel(Client *client, const std::vector<std::string> &params);
 //	void 		addFds(pollfd newFd);
 	void 		setUsername(std::string &username, int fd);
 	void 		setNickname(std::string cmd, int fd);
@@ -81,10 +83,9 @@ public:
 	void 		ReceiveNewData(int fd); //-> receive new data from a registered client
 	void		addPollfd(int fd); //-> agrego un elemento al vector poll de un cliente o el propio server 
 	static void SignalHandler(int signum); //-> signal handler
-	Client 		*getClien(int fd);
-	
+	Channel		*getChannel(const std::string &name);
 	void 		RemoveClient(int fd);
-	void 		RemoveChannel(std::string name);
+	void 		RemoveChannel(const std::string &name);
 	void 		RemoveFds(int fd);
 	void		RmChannels(int fd);
 	void 		_CloseFds();		   //-> close file descriptors	
