@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/07/11 22:20:08 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/12 13:07:54 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -290,17 +290,17 @@ int Server::getFd()
 
 Client *Server::getClient(int fd)
 {
-	for (size_t i = 0; i < _clients.size(); i++) //-> encuentra el cliente con ese fd
-		if (_clients[i].getFd() == fd)
-			return (&(this->_clients[i]));
+	for (std::vector<Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+		if ((*i).getFd() == fd)
+			return &(*i);
 	return (NULL);
 }
 
 Client *Server::getClientNick(std::string nickname)
 {
-	for (size_t i = 0; i < this->_clients.size(); i++)
-		if (this->_clients[i].getNickName() == nickname)
-			return &this->_clients[i];
+	for (std::vector<Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+		if ((*i).getNickName() == nickname)
+			return &(*i);
 	return NULL;
 }
 
@@ -363,7 +363,7 @@ void Server::_passAutentication(Client *client, std::vector<std::string> params)
 {
 	if (client->getStatus() != PASS)
 	{
-		client->addOutBuffer(std::string("462 * :You may not reregister\r\n"));
+		client->addOutBuffer(std::string("462 * :You may not register\r\n"));
 		return;
 	}
 	if (params.size() < 1)
@@ -451,6 +451,11 @@ void Server::_userAutentication(Client *client, std::vector<std::string> params)
 	client->nextStatus();
 }
 
+/*void Server::addClient(Client *newClient)
+{
+	_clients.push_back(newClient);
+}*/
+
 void Server::_cmdPingSend(Client *client, std::vector<std::string> params)
 {
 	if (params.size() < 1)
@@ -495,7 +500,7 @@ void Server::_cmdMode(Client *client, std::vector<std::string> params)
 		return;
 	}
 
-	std::string target = params[0];
+	/*std::string target = params[0];
 	if (target[0] == '#' || target[0] == '&') // Channel mode
 	{
 		_cmdChannelMode(client, params);
@@ -503,10 +508,10 @@ void Server::_cmdMode(Client *client, std::vector<std::string> params)
 	else // User mode
 	{
 		client->addOutBuffer(std::string("502 " + client->getNickName() + " :Cannot change mode for other users\r\n"));
-	}
+	}*/
 }
 
-void _cmdChannelMode(Client *client, std::vector<std::string> params)
+/*void _cmdChannelMode(Client *client, std::vector<std::string> params)
 {
 	(void)params;
 	if (client->getStatus() != REG)
@@ -514,4 +519,4 @@ void _cmdChannelMode(Client *client, std::vector<std::string> params)
 		client->addOutBuffer(std::string("451 * :You have not registered\r\n"));
 		return;
 	}
-}
+}*/
