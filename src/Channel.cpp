@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/07/12 19:14:54 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/12 20:25:13 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,13 +34,13 @@ Channel::~Channel(){}
 Channel::Channel(std::string name, Client *client): _name(name), _invOnly(false)
 {
 	_clients.push_back(client);
-	_admins.push_back(client);
+	_admins.push_back(client->getNickName());
 }
 
 Channel::Channel(std::string name, std::string password, Client *client): _name(name), _password(password), _invOnly(false)
 {
 	_clients.push_back(client);
-	_admins.push_back(client);
+	_admins.push_back(client->getNickName());
 }
 
 Channel &Channel::operator=(Channel const &other)
@@ -78,15 +78,45 @@ bool Channel::isInvOnly()
 	return _invOnly;
 }
 
+bool Channel::isAdmin(const std::string &nickname)
+{
+	for (std::vector<std::string>::iterator i = _admins.begin(); i != _admins.end(); ++i)
+		if (*i == nickname)
+			return true;
+	return false;
+}
+
 void Channel::add_client(Client *client)
 {
 	_clients.push_back(client);
 	client->addOutBuffer(std::string("You joined #" + GetName() + " \r\n"));
 }
 
+bool Channel::remove_client(const std::string &nick)
+{
+	for (std::vector<Client*>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+	{
+		if ((*i)->getNickName() == nick)
+		{
+			if (isAdmin(nick))
+				remove_admin(nick);
+			_clients.erase(i);
+			return true;
+		}
+	}
+	return false;
+}
+
 void Channel::add_admin(Client *client)
 {
-	_admins.push_back(client);
+	_admins.push_back(client->getNickName());
+}
+
+void Channel::remove_admin(const std::string &nick)
+{
+	for (std::vector<std::string>::iterator i = _admins.begin(); i != _admins.end(); ++i)
+		if (*i == nick)
+			_admins.erase(i);
 }
 
 void Channel::sendToAll(std::string msg)

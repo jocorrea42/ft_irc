@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/07/12 19:16:17 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/12 20:21:45 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,6 +179,12 @@ void Server::ReceiveNewData(int fd)
 			_cmdJoin(cli, params);
 		else if (command == "MSG")
 			_cmdMsg(cli, params);
+		else if (command == "KICK")
+			_cmdKick(cli, params);
+		else if (command == "INVITE")
+			_cmdInvite(cli, params);
+		else if (command == "TOPIC")
+			_cmdTopic(cli, params);
 		else if (command == std::string("MODE"))
 			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
 		//_cmdQuit(cli, params);
@@ -186,6 +192,32 @@ void Server::ReceiveNewData(int fd)
 			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
 	}
 	cli->sendOwnMessage();
+}
+
+void Server::_cmdKick(Client *client, std::vector<std::string> params)
+{
+	if (params.size() < 2)
+	{
+		client->addOutBuffer(std::string("Usage: KICK [channel] [nickname] [...]\r\n"));
+		return;
+	}
+	if (Channel *channel = getChannel(params[0]))
+	{
+		if (channel->isAdmin(client->getNickName()))
+		{
+			for (std::vector<std::string>::iterator i = params.begin() + 1; i != params.end(); ++i)
+			{
+				if (channel->remove_client(*i))
+					client->addOutBuffer(std::string("User " + *i + " removed from channel " + channel->GetName() + "\r\n"));
+				else
+					client->addOutBuffer(std::string("User " + *i + " does not exist on channel " + channel->GetName() + "\r\n"));
+			}
+		}
+		else
+			client->addOutBuffer(std::string("You don't have admin rights\r\n"));
+	}
+	else
+		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
 }
 
 void Server::_cmdMsg(Client *client, std::vector<std::string> params)
