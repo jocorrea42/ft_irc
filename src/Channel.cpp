@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/07/11 22:18:50 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/12 19:14:54 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@
 //     void remove_admin(int fd);
 //     bool change_clientToAdmin(std::string &nick);
 //     bool change_adminToClient(std::string &nick);
-//     void sendTo_all(std::string rpl1);
 // 	void sendTo_all(std::string rpl1, int fd);
 Channel::Channel(){}
 
@@ -88,4 +87,10 @@ void Channel::add_client(Client *client)
 void Channel::add_admin(Client *client)
 {
 	_admins.push_back(client);
+}
+
+void Channel::sendToAll(std::string msg)
+{
+	for (std::vector<Client*>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+		(*i)->addOutBuffer(msg + "\r\n");
 }

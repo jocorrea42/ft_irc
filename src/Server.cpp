@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/07/12 13:07:54 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/12 19:16:17 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,6 +177,8 @@ void Server::ReceiveNewData(int fd)
 			_cmdQuit(cli, params);
 		else if (command == "JOIN")
 			_cmdJoin(cli, params);
+		else if (command == "MSG")
+			_cmdMsg(cli, params);
 		else if (command == std::string("MODE"))
 			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
 		//_cmdQuit(cli, params);
@@ -184,6 +186,34 @@ void Server::ReceiveNewData(int fd)
 			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
 	}
 	cli->sendOwnMessage();
+}
+
+void Server::_cmdMsg(Client *client, std::vector<std::string> params)
+{
+	if (params.size() < 2)
+	{
+		client->addOutBuffer(std::string("Usage: MSG [#channel/nickname] [message]\r\n"));
+		return;
+	}
+	if (params[0][0] == '#')
+	{
+		if (Channel *channel = getChannel(&params[0][1]))
+		{
+			if (channel->getClient(client->getNickName()))
+				channel->sendToAll(params[1]);
+			else
+				client->addOutBuffer(std::string("You do not belong to this channel\r\n"));
+		}
+		else
+			client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
+	}
+	else
+	{
+		if (Client *target = getClientNick(params[0]))
+			target->addOutBuffer(std::string(params[1] + "\r\n"));
+		else
+			client->addOutBuffer(std::string("User " + params[0] + " does not exist\r\n"));
+	}
 }
 
 void Server::_cmdJoin(Client *client, std::vector<std::string> params)

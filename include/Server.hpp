@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/07/12 13:12:14 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/12 19:04:56 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ private:
 	void		_cmdMode(Client *client, std::vector<std::string> params);
 	void		_cmdChannelMode(Client *client, std::vector<std::string> params);
 	void		_cmdJoin(Client *client, std::vector<std::string> params);
+	void		_cmdMsg(Client *client, std::vector<std::string> params);
 
 public:
 	Server(); //-> default constructor
