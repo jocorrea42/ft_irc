@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/07/12 20:22:55 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/16 10:07:59 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ private:
 	bool		_invOnly;
 	std::vector<int>	_invited;
     std::vector<Client*> _clients;
-    std::vector<std::string> _admins;
+    std::vector<int> _admins;
 
 public:
     Channel();
@@ -39,14 +39,15 @@ public:
     void SetName(std::string name){this->_name = name;}
     std::string GetPassword(){return this->_password;}
 	std::string GetName(){return this->_name;}
-	bool getClient(std::string nick);
+	bool isClient(int fd);
 	bool isInvited(int fd);
-	bool isAdmin(const std::string &nickname);
+	bool invite(int fd);
+	bool isAdmin(int fd);
 	bool isInvOnly();
     void add_client(Client *client);
     void add_admin(Client *client);
-    bool remove_client(const std::string &nick);
-    void remove_admin(const std::string &nick);
+    bool remove_client(int fd);
+    void remove_admin(int nick);
     bool change_clientToAdmin(std::string &nick);
     bool change_adminToClient(std::string &nick);
     void sendToAll(std::string msg);

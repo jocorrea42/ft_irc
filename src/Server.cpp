@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/07/12 20:21:45 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/16 10:08:41 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,6 +194,32 @@ void Server::ReceiveNewData(int fd)
 	cli->sendOwnMessage();
 }
 
+void Server::_cmdInvite(Client *client, std::vector<std::string> params)
+{
+	if (params.size() < 2)
+	{
+		client->addOutBuffer(std::string("Usage: INVITE [channel] [nickname] [...]\r\n"));
+		return;
+	}
+	if (Channel *channel = getChannel(params[0]))
+	{
+		if (channel->isAdmin(client->getFd()))
+		{
+			for (std::vector<std::string>::iterator i = params.begin() + 1; i != params.end(); ++i)
+			{
+				if (channel->invite(getClientFd(*i)))
+					client->addOutBuffer(std::string("User " + *i + " invited\r\n"));
+				else
+					client->addOutBuffer(std::string("User " + *i + " does not exist\r\n"));
+			}
+		}
+		else
+			client->addOutBuffer(std::string("You don't have admin rights\r\n"));
+	}
+	else
+		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
+}
+
 void Server::_cmdKick(Client *client, std::vector<std::string> params)
 {
 	if (params.size() < 2)
@@ -203,11 +229,11 @@ void Server::_cmdKick(Client *client, std::vector<std::string> params)
 	}
 	if (Channel *channel = getChannel(params[0]))
 	{
-		if (channel->isAdmin(client->getNickName()))
+		if (channel->isAdmin(client->getFd()))
 		{
 			for (std::vector<std::string>::iterator i = params.begin() + 1; i != params.end(); ++i)
 			{
-				if (channel->remove_client(*i))
+				if (channel->remove_client(getClientFd(*i)))
 					client->addOutBuffer(std::string("User " + *i + " removed from channel " + channel->GetName() + "\r\n"));
 				else
 					client->addOutBuffer(std::string("User " + *i + " does not exist on channel " + channel->GetName() + "\r\n"));
@@ -231,7 +257,7 @@ void Server::_cmdMsg(Client *client, std::vector<std::string> params)
 	{
 		if (Channel *channel = getChannel(&params[0][1]))
 		{
-			if (channel->getClient(client->getNickName()))
+			if (channel->isClient(client->getFd()))
 				channel->sendToAll(params[1]);
 			else
 				client->addOutBuffer(std::string("You do not belong to this channel\r\n"));
@@ -262,7 +288,7 @@ void Server::_cmdJoin(Client *client, std::vector<std::string> params)
 		return;
 	}
 	Channel *channel = getChannel(params[0]);
-	if (channel->getClient(client->getNickName()))
+	if (channel->isClient(client->getFd()))
 		client->addOutBuffer(std::string("You alredy joined this channel\r\n"));
 	else if (!channel->isInvOnly())
 	{
@@ -364,6 +390,14 @@ Client *Server::getClientNick(std::string nickname)
 		if ((*i).getNickName() == nickname)
 			return &(*i);
 	return NULL;
+}
+
+int Server::getClientFd(const std::string &nick)
+{
+	for (std::vector<Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+		if ((*i).getNickName() == nick)
+			return (*i).getFd();
+	return -1;
 }
 
 Channel *Server::getChannel(const std::string &name)

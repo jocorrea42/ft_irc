@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/07/12 19:37:35 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/16 09:42:48 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,7 @@ public:
 	std::string getPassword();
 	Client 		*getClient(int fd);
 	Client 		*getClientNick(std::string nick);
+	int			getClientFd(const std::string &nick);
 	void 		setFd(int fd);
 	void 		setPort(int port);
 	void 		setPassword(std::string pass);
