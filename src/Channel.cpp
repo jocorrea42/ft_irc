@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/07/16 10:07:37 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/17 17:13:56 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,6 +128,12 @@ void Channel::remove_admin(int fd)
 	for (std::vector<int>::iterator i = _admins.begin(); i != _admins.end(); ++i)
 		if (*i == fd)
 			_admins.erase(i);
+}
+
+
+void Channel::setTopic(const std::string &newTopic)
+{
+	_topic = newTopic;
 }
 
 void Channel::sendToAll(std::string msg)

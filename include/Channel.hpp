@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/07/16 10:07:59 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/17 17:13:44 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ public:
     void add_admin(Client *client);
     bool remove_client(int fd);
     void remove_admin(int nick);
+	void setTopic(const std::string &newTopic);
     bool change_clientToAdmin(std::string &nick);
     bool change_adminToClient(std::string &nick);
     void sendToAll(std::string msg);

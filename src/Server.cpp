@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/07/16 10:08:41 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/17 17:14:10 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,6 +192,27 @@ void Server::ReceiveNewData(int fd)
 			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
 	}
 	cli->sendOwnMessage();
+}
+
+void Server::_cmdTopic(Client *client, std::vector<std::string> params)
+{
+	if (params.empty() || params.size() > 2)
+	{
+		client->addOutBuffer(std::string("Usage: TOPIC [channel] [\"new topic\"]\r\n"));
+		return;
+	}
+	if (Channel *channel = getChannel(params[0]))
+	{
+		if (channel->isAdmin(client->getFd()))
+		{
+			channel->setTopic(params[1]);
+			client->addOutBuffer(std::string("Channel topic updated\r\n"));
+		}
+		else
+			client->addOutBuffer(std::string("You don't have admin rights\r\n"));
+	}
+	else
+		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
 }
 
 void Server::_cmdInvite(Client *client, std::vector<std::string> params)
