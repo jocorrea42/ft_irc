@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/07/17 17:14:10 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/22 21:56:17 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,6 +194,81 @@ void Server::ReceiveNewData(int fd)
 	cli->sendOwnMessage();
 }
 
+void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
+{
+	if (params.size() < 2 || params[0].size() != 2)
+	{
+		client->addOutBuffer(std::string("Usage: MODE [-i/-t/-k/-o/-l] [channel] [arguments]\r\n"));
+		return;
+	}
+	if (Channel *channel = getChannel(params[1]))
+	{
+		if (channel->isAdmin(client->getFd()))
+		{
+			switch(params[0][1]){
+				case 'i':
+					if (channel->isInvOnly())
+					{
+						channel->unsetInvOnly();
+						client->addOutBuffer(std::string("Invite-only channel disabled for " + params[1] + "\r\n"));
+					}
+					else
+					{
+						channel->setInvOnly();
+						client->addOutBuffer(std::string("Invite-only channel abled for " + params[1] + "\r\n"));
+					}
+					break;
+				case 't':
+					if (channel->isTopicLocked())
+					{
+						channel->unsetTopicLock();
+						client->addOutBuffer(std::string("Topic change rights allowed to non-operators for " + params[1] + "\r\n"));
+					}
+					else
+					{
+						channel->setTopicLock();
+						client->addOutBuffer(std::string("Topic change rights restricted to operators for " + params[1] + "\r\n"));
+					}
+					break;
+				case 'k':
+					if (params.size() > 2)
+					{
+						channel->SetPassword(params[2]);
+						client->addOutBuffer(std::string("Password set\r\n"));
+					}
+					else
+					{
+						channel->SetPassword(NULL);
+						client->addOutBuffer(std::string("Password removed\r\n"));
+					}
+					break;
+				case 'o':
+					for (std::vector<std::string>::iterator i = params.begin() + 2; i != params.end(); ++i)
+						channel->GiveTakeAdmin(getClientFd(*i), *i, client);
+					break;
+				case 'l':
+					if (params.size() > 2)
+					{
+						channel->setLimit(atoi(params[2].c_str()));
+						client->addOutBuffer(std::string("Limit set to " + params[2] + "\r\n"));
+					}
+					else
+					{
+						channel->setLimit(0);
+						client->addOutBuffer(std::string("Limit removed\r\n"));
+					}
+					break;
+				default:
+					client->addOutBuffer(std::string("Unknown option: " + params[0] + "\r\n"));
+			}
+		}
+		else
+			client->addOutBuffer(std::string("You don't have admin rights\r\n"));
+	}
+	else
+		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
+}
+
 void Server::_cmdTopic(Client *client, std::vector<std::string> params)
 {
 	if (params.empty() || params.size() > 2)
@@ -203,7 +278,12 @@ void Server::_cmdTopic(Client *client, std::vector<std::string> params)
 	}
 	if (Channel *channel = getChannel(params[0]))
 	{
-		if (channel->isAdmin(client->getFd()))
+		if (params.size() == 1)
+		{
+			client->addOutBuffer(channel->getTopic() + "\r\n");
+			return;
+		}
+		if (!channel->isTopicLocked() || channel->isAdmin(client->getFd()))
 		{
 			channel->setTopic(params[1]);
 			client->addOutBuffer(std::string("Channel topic updated\r\n"));
@@ -299,7 +379,7 @@ void Server::_cmdJoin(Client *client, std::vector<std::string> params)
 {
 	if (params.empty())
 	{
-		client->addOutBuffer(std::string("Usage: JOIN [name] [password]\r\n"));
+		client->addOutBuffer(std::string("Usage: JOIN [channel] [password]\r\n"));
 		return;
 	}
 	if (!getChannel(params[0]))
@@ -309,6 +389,11 @@ void Server::_cmdJoin(Client *client, std::vector<std::string> params)
 		return;
 	}
 	Channel *channel = getChannel(params[0]);
+	if (channel->isFull())
+	{
+		client->addOutBuffer(std::string("#" + params[0] + " is full\r\n"));
+		return;
+	}
 	if (channel->isClient(client->getFd()))
 		client->addOutBuffer(std::string("You alredy joined this channel\r\n"));
 	else if (!channel->isInvOnly())
