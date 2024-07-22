@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/07/22 21:38:44 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/22 21:58:13 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,9 @@ private:
     std::string _name;
     std::string _password;
 	std::string _topic;
-	int			_limit;
 	bool		_invOnly;
 	bool		_topicLock;
+	int			_limit;
 	std::vector<int>	_invited;
     std::vector<Client*> _clients;
     std::vector<int> _admins;

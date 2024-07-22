@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/07/22 21:45:00 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/22 21:59:07 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,7 +163,7 @@ void Channel::setLimit(int n)
 
 bool Channel::isFull()
 {
-	if (_limit > 0 && _clients.size() >= _limit)
+	if (_limit > 0 && (int)_clients.size() >= _limit)
 		return true;
 	return false;
 }
