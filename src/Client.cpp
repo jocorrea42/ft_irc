@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:25:16 by fili              #+#    #+#             */
-/*   Updated: 2024/07/11 20:21:42 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/28 16:34:38 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,10 +39,12 @@ void Client::nextStatus()
 
 int    Client::sendOwnMessage()
 {
+	
 	int ret = send(_fd, NULL, 0, 0);
 	if (ret == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
 	{
 		// The writing operation would block
+		std::cout << "mandando a:" << this->_nickName << " msg: " << this->_outBuffer << std::endl;
 		return 0;
 	}
 	else if (ret == -1)
@@ -50,6 +52,7 @@ int    Client::sendOwnMessage()
 		// -1 == disconected client
 		return 0;
 	}
+	
 	int bytes = send(_fd, _outBuffer.c_str(), _outBuffer.length(), 0);
 	if (bytes == -1 && errno != EAGAIN && errno != EWOULDBLOCK)// -1 == disconected client
 			return 0;///mal
@@ -88,11 +91,13 @@ int		Client::receiveMessage()
 				break;
 			else
 			{
-				std::cout << "Client <" << _fd << "> Disconnected" << std::endl;
+				std::cout << "Client este que esta aqui <" << _fd << "> Disconnected" << std::endl;
 				return 0;
 			}
 		}
+		buff[bytes] = 0;
 		this->addInBuffer(buff);
 	}
+	
 	return (1);
 }

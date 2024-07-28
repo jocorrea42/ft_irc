@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/07/22 16:04:02 by apodader         ###   ########.fr       */
+/*   Updated: 2024/07/28 15:20:50 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,8 @@ private:
 	void	_cmdKick(Client *client, std::vector<std::string> params);
 	void	_cmdInvite(Client *client, std::vector<std::string> params);
 	void	_cmdTopic(Client *client, std::vector<std::string> params);
-
+	void		_sendAllClient(std::string msg);
+	
 public:
 	Server(); //-> default constructor
 	Server(int port, std::string password);

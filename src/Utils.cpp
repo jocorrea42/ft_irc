@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/07/28 14:56:18 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/07/28 16:09:02 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,7 +151,7 @@ void Server::printParam(std::vector<std::string> params)
 }
 
 void Server::_ClearClient(int fd)
-{											 //-> clear the clients
+{	 //-> clear the clients
 	for (size_t i = 0; i < _fds.size(); i++) //-> remove the client from the pollfd
 		if (_fds[i].fd == fd)
 		{

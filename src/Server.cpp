@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/07/28 14:59:06 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/07/28 16:40:11 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,22 +53,22 @@ void Server::ServerStart()
 				else // en este caso es un mensaje de algun cliente
 					ReceiveNewData(_fds[i].fd);
 			}
-		}
-		for (int i = 0; i < _polls_size; i++)
-		{
-			if (_fds[i].fd != _fd)
+			for (int i = 0; i < _polls_size; i++)
 			{
-				cli = getClient((int)_fds[i].fd);
-				if (cli->getOutBuffer().size())
+				if (_fds[i].fd != _fd)
 				{
-					if (cli->sendOwnMessage())
+					cli = getClient((int)_fds[i].fd);
+					if (cli != NULL && cli->getOutBuffer().size())
 					{
-						cli->cleanOutBuffer();
-					}
-					else
-					{
-						std::cout << "   -----unexpected client disconnection\n";
-						_ClearClient(_fds[i].fd);
+						if (cli->sendOwnMessage())
+						{
+							cli->cleanOutBuffer();
+						}
+						else
+						{
+							std::cout << "   -----unexpected client disconnection\n";
+							_ClearClient(_fds[i].fd);
+						}
 					}
 				}
 			}
@@ -88,8 +88,8 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 		throw(std::runtime_error("faild accept client"));
 	if (fcntl(inConectionFd, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
-	_clients.push_back(*(new Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
-	addPollfd(inConectionFd);									 // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
+	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
+	addPollfd(inConectionFd);								// -> agrega un nuevo fd a la lista de poll para la escucha de un evento
 	std::cout << "CLIENT <" << inConectionFd << "> IS CONNECTED!!!" << std::endl;
 }
 
@@ -99,15 +99,13 @@ void Server::ReceiveNewData(int fd)
 	std::string sms;
 	std::vector<std::string> params;
 	std::string token;
-
 	Client *cli = getClient(fd);
 
 	if (!cli->receiveMessage() || cli->getInBuffer().find("\r\n") == std::string::npos)
 	{
-		_ClearClient(_fd); //-> clear the client
+		_ClearClient(cli->getFd()); //-> clear the client
 		return;
 	}
-	// std::cout << "Buffer: --" << cli->getInBuffer() << " --FIN--" << " r y n : " << cli->getInBuffer().find_first_of("\r\n") << std::endl;
 	std::string line = cli->getInBuffer();
 	while (line.size() > 0)
 	{
@@ -161,8 +159,7 @@ void Server::ReceiveNewData(int fd)
 		else if (command == "TOPIC")
 			_cmdTopic(cli, params);
 		else if (command == std::string("MODE"))
-			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
-		//_cmdQuit(cli, params);
+			_cmdMode(cli, params);
 		else
 			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
 	}
