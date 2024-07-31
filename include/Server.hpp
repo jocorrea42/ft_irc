@@ -62,6 +62,7 @@ private:
 	void	_cmdKick(Client *client, std::vector<std::string> params);
 	void	_cmdInvite(Client *client, std::vector<std::string> params);
 	void	_cmdTopic(Client *client, std::vector<std::string> params);
+	void 	_broadcastAllServer(const std::string& message);
 
 public:
 	Server(); //-> default constructor

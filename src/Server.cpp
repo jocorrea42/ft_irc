@@ -88,7 +88,7 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 		throw(std::runtime_error("faild accept client"));
 	if (fcntl(inConectionFd, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
-	_clients.push_back(*(new Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
+	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
 	addPollfd(inConectionFd);									 // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
 	std::cout << "CLIENT <" << inConectionFd << "> IS CONNECTED!!!" << std::endl;
 }
@@ -107,7 +107,6 @@ void Server::ReceiveNewData(int fd)
 		_ClearClient(_fd); //-> clear the client
 		return;
 	}
-	// std::cout << "Buffer: --" << cli->getInBuffer() << " --FIN--" << " r y n : " << cli->getInBuffer().find_first_of("\r\n") << std::endl;
 	std::string line = cli->getInBuffer();
 	while (line.size() > 0)
 	{
@@ -161,8 +160,7 @@ void Server::ReceiveNewData(int fd)
 		else if (command == "TOPIC")
 			_cmdTopic(cli, params);
 		else if (command == std::string("MODE"))
-			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
-		//_cmdQuit(cli, params);
+			_cmdTopic(cli, params);
 		else
 			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
 	}
