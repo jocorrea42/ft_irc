@@ -55,24 +55,20 @@ void Server::ServerStart()
 			}
 		}
 		for (int i = 0; i < _polls_size; i++)
-		{
 			if (_fds[i].fd != _fd)
 			{
 				cli = getClient((int)_fds[i].fd);
 				if (cli->getOutBuffer().size())
 				{
 					if (cli->sendOwnMessage())
-					{
 						cli->cleanOutBuffer();
-					}
 					else
 					{
-						std::cout << "   -----unexpected client disconnection\n";
+						std::cout << "unexpected client disconnection send msg to " << cli->getName() << std::endl;
 						_ClearClient(_fds[i].fd);
 					}
 				}
 			}
-		}
 	}
 	_CloseFds();
 }

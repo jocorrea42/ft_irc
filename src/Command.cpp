@@ -80,9 +80,9 @@ void Server::_userAutentication(Client *client, std::vector<std::string> params)
 		// Send RPL_YOURHOST: 002
 		client->addOutBuffer(std::string("002 " + nickname + " :Your host is " + servername + ", running version 1.0\r\n"));
 		// Send RPL_CREATED: 003
-		client->addOutBuffer(std::string("003 " + nickname + " :This server was created POR GERONIMA" + "\r\n"));
+		client->addOutBuffer(std::string("003 " + nickname + " :This server was created for apodader and jocorrea \"THE PACHANGA TEAM\"" + " \r\n"));
 		// Send RPL_MYINFO: 004
-		client->addOutBuffer(std::string("004 " + nickname + " " + servername + " 1.0 o o\r\n"));
+		client->addOutBuffer(std::string("004 " + nickname + " " + servername + " 1.0 \r\n"));
 		client->nextStatus();
 	}
 }
@@ -90,9 +90,9 @@ void Server::_userAutentication(Client *client, std::vector<std::string> params)
 void Server::_cmdPingSend(Client *client, std::vector<std::string> params)
 {
 	if (params.size() < 1)
-		client->addOutBuffer(std::string("409 * :No origin specified\r\n"));
+		client->addOutBuffer(std::string("409 * :No origin specified \r\n"));
 	else
-		client->addOutBuffer(std::string("PONG no se pmuestra el pong " + params[0] + "\r\n"));
+		client->addOutBuffer(std::string("-PONG: no se pmuestra el pong " + params[0] + " \r\n"));
 }
 
 void Server::_cmdCap(Client *client, std::vector<std::string> params)
@@ -100,7 +100,7 @@ void Server::_cmdCap(Client *client, std::vector<std::string> params)
 	if (params.size() && (params[0] == "LS" || params[0] == "END"))
 	{
 		if (params[0] == "LS") // si es END no hace nada
-			client->addOutBuffer(std::string("CAP * LS :\r\n"));
+			client->addOutBuffer(std::string("CAP * LS : \r\n"));
 	}
 	else
 		client->addOutBuffer(std::string("421 * CAP :Unknown command\r\n"));
@@ -108,7 +108,7 @@ void Server::_cmdCap(Client *client, std::vector<std::string> params)
 
 void Server::_cmdQuit(Client *client, std::vector<std::string> params)
 {
-	std::string message = "Client Quit";
+	std::string message = "Client <" + client->getNickName() + "> Quit \r\n";
 	if (params.size() >= 1)
 		message = params[0];
 	client->setOutBuffer(message);
@@ -117,31 +117,24 @@ void Server::_cmdQuit(Client *client, std::vector<std::string> params)
 void Server::_cmdMode(Client *client, std::vector<std::string> params)
 {
 	if (client->getStatus() != REG)
-	{
-		client->addOutBuffer(std::string("451 * :You have not registered\r\n"));
-		return;
-	}
-
-	if (params.size() < 1)
-	{
+		client->addOutBuffer(std::string("451 * :You have not registered \r\n"));
+	else if (params.size() < 1)
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " MODE :Not enough parameters\r\n"));
-		return;
+	else
+	{
+		std::string target = params[0];
+		if (target[0] == '#' || target[0] == '&') // Channel mode
+			_cmdChannelMode(client, params);
+		else // User mode
+			client->addOutBuffer(std::string("502 " + client->getNickName() + " :Cannot change mode for other users\r\n"));
 	}
-	std::string target = params[0];
-	if (target[0] == '#' || target[0] == '&') // Channel mode
-		_cmdChannelMode(client, params);
-	else // User mode
-		client->addOutBuffer(std::string("502 " + client->getNickName() + " :Cannot change mode for other users\r\n"));
 }
 
 void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 {
 	if (params.size() < 2 || params[0].size() != 2)
-	{
-		client->addOutBuffer(std::string("Usage: MODE [-i/-t/-k/-o/-l] [channel] [arguments]\r\n"));
-		return;
-	}
-	if (Channel *channel = getChannel(params[1]))
+		client->addOutBuffer(std::string("Usage: MODE [-i/-t/-k/-o/-l] [channel] [arguments] \r\n"));
+	else if (Channel *channel = getChannel(params[1]))
 	{
 		if (channel->isAdmin(client->getFd()))
 		{
