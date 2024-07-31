@@ -89,7 +89,7 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 	if (fcntl(inConectionFd, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
 	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
-	addPollfd(inConectionFd);									 // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
+	addPollfd(inConectionFd);								// -> agrega un nuevo fd a la lista de poll para la escucha de un evento
 	std::cout << "CLIENT <" << inConectionFd << "> IS CONNECTED!!!" << std::endl;
 }
 
@@ -99,69 +99,67 @@ void Server::ReceiveNewData(int fd)
 	std::string sms;
 	std::vector<std::string> params;
 	std::string token;
-
 	Client *cli = getClient(fd);
 
 	if (!cli->receiveMessage() || cli->getInBuffer().find("\r\n") == std::string::npos)
-	{
 		_ClearClient(_fd); //-> clear the client
-		return;
-	}
-	std::string line = cli->getInBuffer();
-	while (line.size() > 0)
+	else
 	{
-		sms = line.substr(0, line.find("\r\n"));
-		line.erase(0, line.find("\r\n") + 2);
-		std::cout << "Message from " << cli->getNickName() << ": " << sms << std::endl;
-		cli->cleanInBuffer();
-		params.clear();
-		// Extraer parametros y comandos
-		std::istringstream iss(sms);
-		if (sms[0] == ':')
-			iss >> token; // Read and discard the prefix
-		// extrae el comando
-		iss >> command;
-		// extraemos los parametros
-		while (iss >> token)
+		std::string line = cli->getInBuffer();
+		while (line.size() > 0)
 		{
-			if (token[0] == ':')
-			{ // Extract the trailing part
-				std::string trailing;
-				std::getline(iss, trailing);				  // extrae todo el texto
-				params.push_back(token.substr(1) + trailing); // quita los dos puntos
-				break;
-			}
+			sms = line.substr(0, line.find("\r\n"));
+			line.erase(0, line.find("\r\n") + 2);
+			std::cout << "Message from " << cli->getNickName() << ": " << sms << std::endl;
+			cli->cleanInBuffer();
+			params.clear();
+			// Extraer parametros y comandos
+			std::istringstream iss(sms);
+			if (sms[0] == ':')
+				iss >> token; // Read and discard the prefix
+			// extrae el comando
+			iss >> command;
+			// extraemos los parametros
+			while (iss >> token)
+			{
+				if (token[0] == ':')
+				{ // Extract the trailing part
+					std::string trailing;
+					std::getline(iss, trailing);				  // extrae todo el texto
+					params.push_back(token.substr(1) + trailing); // quita los dos puntos
+					break;
+				}
+				else
+					params.push_back(token); // el parametro no tiene :
+			} // Remove trailing \r from the last parameter
+			if (!params.empty() && !params[params.size() - 1].empty() && params[params.size() - 1][params[params.size() - 1].size() - 1] == '\r')
+				params[params.size() - 1].resize(params[params.size() - 1].size() - 1);
+			if (command == std::string("PASS"))
+				_passAutentication(cli, params);
+			else if (command == std::string("NICK"))
+				_nickAutentication(cli, params);
+			else if (command == std::string("USER"))
+				_userAutentication(cli, params);
+			else if (command == std::string("PING"))
+				_cmdPingSend(cli, params);
+			else if (command == std::string("CAP"))
+				_cmdCap(cli, params);
+			else if (command == std::string("QUIT"))
+				_cmdQuit(cli, params);
+			else if (command == "JOIN")
+				_cmdJoin(cli, params);
+			else if (command == "MSG")
+				_cmdMsg(cli, params);
+			else if (command == "KICK")
+				_cmdKick(cli, params);
+			else if (command == "INVITE")
+				_cmdInvite(cli, params);
+			else if (command == "TOPIC")
+				_cmdTopic(cli, params);
+			else if (command == std::string("MODE"))
+				_cmdMode(cli, params);
 			else
-				params.push_back(token); // el parametro no tiene :
-		} // Remove trailing \r from the last parameter
-		if (!params.empty() && !params[params.size() - 1].empty() && params[params.size() - 1][params[params.size() - 1].size() - 1] == '\r')
-			params[params.size() - 1].resize(params[params.size() - 1].size() - 1);
-		// printParam(params);
-		if (command == std::string("PASS"))
-			_passAutentication(cli, params);
-		else if (command == std::string("NICK"))
-			_nickAutentication(cli, params);
-		else if (command == std::string("USER"))
-			_userAutentication(cli, params);
-		else if (command == std::string("PING"))
-			_cmdPingSend(cli, params);
-		else if (command == std::string("CAP"))
-			_cmdCap(cli, params);
-		else if (command == std::string("QUIT"))
-			_cmdQuit(cli, params);
-		else if (command == "JOIN")
-			_cmdJoin(cli, params);
-		else if (command == "MSG")
-			_cmdMsg(cli, params);
-		else if (command == "KICK")
-			_cmdKick(cli, params);
-		else if (command == "INVITE")
-			_cmdInvite(cli, params);
-		else if (command == "TOPIC")
-			_cmdTopic(cli, params);
-		else if (command == std::string("MODE"))
-			_cmdTopic(cli, params);
-		else
-			cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
+				cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
+		}
 	}
 }
