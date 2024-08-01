@@ -183,10 +183,13 @@ void Channel::setTopic(const std::string &newTopic)
 	_topic = newTopic;
 }
 
-void Channel::sendToAll(std::string msg)
+void Channel::sendToAll(std::string msg, int fd)
 {
 	for (std::vector<Client*>::iterator i = _clients.begin(); i != _clients.end(); ++i)
-		(*i)->addOutBuffer(msg + "\r\n");
+	{
+		if ((*i)->getFd() != fd)
+			(*i)->addOutBuffer(msg);
+	}
 }
 
 void Channel::GiveTakeAdmin(int fd, const std::string &nick, Client *client)

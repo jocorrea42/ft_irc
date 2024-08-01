@@ -60,7 +60,7 @@ public:
     void remove_admin(int fd);
 	void setTopic(const std::string &newTopic);
     void GiveTakeAdmin(int fd, const std::string &nick, Client *client);
-    void sendToAll(std::string msg);
+    void sendToAll(std::string msg, int fd);
 
 };
 #endif

@@ -146,6 +146,8 @@ void Server::ReceiveNewData(int fd)
 				_cmdJoin(cli, params);
 			else if (command == "MSG")
 				_cmdMsg(cli, params);
+			else if (command == "PRIVMSG")
+				_cmdPrivmsg(cli, params);
 			else if (command == "KICK")
 				_cmdKick(cli, params);
 			else if (command == "INVITE")

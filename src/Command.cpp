@@ -293,7 +293,7 @@ void Server::_cmdMsg(Client *client, std::vector<std::string> params)
 		if (Channel *channel = getChannel(&params[0][1]))
 		{
 			if (channel->isClient(client->getFd()))
-				channel->sendToAll(params[1]);
+				channel->sendToAll(params[1], client->getFd());
 			else
 				client->addOutBuffer(std::string("You do not belong to this channel\r\n"));
 		}
@@ -328,7 +328,7 @@ void Server::_cmdJoin(Client *client, std::vector<std::string> params)
 		client->addOutBuffer(std::string("#" + params[0] + " is full\r\n"));
 		return;
 	}
-	if (channel->isClient(client->getFd()))
+	if (channel->isClient((int)client->getFd()))
 		client->addOutBuffer(std::string("You alredy joined this channel\r\n"));
 	else if (!channel->isInvOnly())
 	{
@@ -356,8 +356,52 @@ void Server::addChannel(Client *client, const std::vector<std::string> &params)
 		_channels.push_back(Channel(params[0], params[1], client));
 }
 
-void Server::_broadcastAllServer(const std::string &message)
+void Server::_broadcastAllServer(std::string message)
 {
 	for (size_t i = 0; i < _clients.size(); i++)
 		_clients[i].addOutBuffer(message);
+}
+
+void Server::_cmdPrivmsg(Client *client, std::vector<std::string> params)
+{
+	if (client->getStatus() != REG)
+	{
+		client->addOutBuffer(std::string("451 * :You have not registered \r\n"));
+		return;
+	}
+	if (params.size() < 2)
+	{
+		client->addOutBuffer(std::string("461 " + client->getNickName() + " PRIVMSG :Not enough parameters \r\n"));
+		return;
+	}
+	std::vector<std::string> obj;
+	std::istringstream iss(params[0]);
+	std::string token;
+	while (std::getline(iss, token, ','))
+		obj.push_back(token);
+	for (size_t i = 0; i < obj.size(); i++)
+	{
+		std::string name = obj[i];
+		Client *cli = getClientNick(name);
+		if (name[0] == '#')
+		{
+			if (Channel *channel = getChannel(name))
+			{
+				if (channel->isClient(client->getFd()))
+					channel->sendToAll(std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + " \r\n"), client->getFd());
+				else
+					client->addOutBuffer(std::string("404 " + client->getNickName() + " " + name + " :Cannot send to channel \r\n"));
+			}
+			else
+				client->addOutBuffer(std::string("403 " + client->getNickName() + " " + name + " :No such channel\r\n"));
+		}
+		else
+		{
+			if (cli == NULL)
+
+				client->addOutBuffer(std::string("401 " + client->getNickName() + " " + name + " :No such nick \r\n"));
+			else
+				cli->addOutBuffer(std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + "\r\n"));
+		}
+	}
 }
