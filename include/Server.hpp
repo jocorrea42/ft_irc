@@ -48,22 +48,22 @@ private:
 	struct sockaddr_in _add;		  // estructura de datos relacionada con la configuracion del socket
 
 	void	_ClearClient(int fd); //-> clear client
-	void	_nickAutentication(Client *client, std::vector<std::string> params);
-	void	_userAutentication(Client *client,std::vector<std::string> params);
-	void	_passAutentication(Client *client,std::vector<std::string> params);
-	void	_cmdPingSend(Client *client, std::vector<std::string> params);
-	void	_cmdCap(Client *client, std::vector<std::string> params);
-	void	_cmdQuit(Client *client, std::vector<std::string> params);
-	bool	_nickNameOk(const std::string& nickname);
-	void	_cmdMode(Client *client, std::vector<std::string> params);
+	void	_nickAutentication(Client *client, const std::vector<std::string> &params);
+	void	_userAutentication(Client *client, const std::vector<std::string> &params);
+	void	_passAutentication(Client *client, const std::vector<std::string> &params);
+	void	_cmdPingSend(Client *client, const std::vector<std::string> &params);
+	void	_cmdCap(Client *client, const std::vector<std::string> &params);
+	void	_cmdQuit(Client *client, const std::vector<std::string> &params);
+	bool	_nickNameOk(const std::string &nickname);
+	void	_cmdMode(Client *client, const std::vector<std::string> &params);
 	void	_cmdChannelMode(Client *client, std::vector<std::string> params);
-	void	_cmdJoin(Client *client, std::vector<std::string> params);
-	void	_cmdMsg(Client *client, std::vector<std::string> params);
+	void	_cmdJoin(Client *client, const std::vector<std::string> &params);
+	void	_cmdMsg(Client *client, const std::vector<std::string> &params);
 	void	_cmdKick(Client *client, std::vector<std::string> params);
 	void	_cmdInvite(Client *client, std::vector<std::string> params);
-	void	_cmdTopic(Client *client, std::vector<std::string> params);
-	void 	_broadcastAllServer(std::string message);
-	void	_cmdPrivmsg(Client* client,std::vector<std::string> params);
+	void	_cmdTopic(Client *client, const std::vector<std::string> &params);
+	void 	_broadcastAllServer(const std::string &message);
+	void	_cmdPrivmsg(Client* client, const std::vector<std::string> &params);
 
 public:
 	Server(); //-> default constructor
@@ -74,17 +74,17 @@ public:
 	int 		getPort();
 	static bool isBotfull; // para el bonus
 	std::string getPassword();
-	Client 		*getClient(int fd);
-	Client 		*getClientNick(std::string nick);
+	Client 		*getClient(const int &fd);
+	Client 		*getClientNick(const std::string &nick);
 	int			getClientFd(const std::string &nick);
-	void 		setFd(int fd);
-	void 		setPort(int port);
-	void 		setPassword(std::string pass);
-	void 		addClient(Client newClient);
+	void 		setFd(const int &fd);
+	void 		setPort(const int &port);
+	void 		setPassword(const std::string &pass);
+	void 		addClient(const Client &newClient);
 	void		addChannel(Client *client, const std::vector<std::string> &params);
 //	void 		addFds(pollfd newFd);
-	void 		setUsername(std::string &username, int fd);
-	void 		setNickname(std::string cmd, int fd);
+	void 		setUsername(const std::string &username, const int &fd);
+	void 		setNickname(const std::string &cmd, const int &fd);
 	void		ServerStart();			 //-> server initialization
 	void 		AcceptNewClient();		 //-> accept new client
 	void 		ReceiveNewData(int fd); //-> receive new data from a registered client

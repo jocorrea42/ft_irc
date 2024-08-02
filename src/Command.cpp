@@ -12,7 +12,7 @@
 
 #include "Server.hpp"
 
-void Server::_passAutentication(Client *client, std::vector<std::string> params)
+void Server::_passAutentication(Client *client, const std::vector<std::string> &params)
 {
 	if (client->getStatus() != PASS)
 		client->addOutBuffer(std::string("462 * :You may not register\r\n"));
@@ -35,7 +35,7 @@ bool Server::_nickNameOk(const std::string &nickname)
 	return true;
 }
 
-void Server::_nickAutentication(Client *client, std::vector<std::string> params)
+void Server::_nickAutentication(Client *client, const std::vector<std::string> &params)
 {
 	std::string oldNick = client->getNickName();
 	if (client->getStatus() == PASS)
@@ -60,7 +60,7 @@ void Server::_nickAutentication(Client *client, std::vector<std::string> params)
 	}
 }
 
-void Server::_userAutentication(Client *client, std::vector<std::string> params)
+void Server::_userAutentication(Client *client, const std::vector<std::string> &params)
 {
 	if (client->getStatus() != USER)
 		client->addOutBuffer(std::string("462 * :You may not reregister\r\n"));
@@ -87,7 +87,7 @@ void Server::_userAutentication(Client *client, std::vector<std::string> params)
 	}
 }
 
-void Server::_cmdPingSend(Client *client, std::vector<std::string> params)
+void Server::_cmdPingSend(Client *client, const std::vector<std::string> &params)
 {
 	if (params.size() < 1)
 		client->addOutBuffer(std::string("409 * :No origin specified \r\n"));
@@ -95,7 +95,7 @@ void Server::_cmdPingSend(Client *client, std::vector<std::string> params)
 		client->addOutBuffer(std::string("-PONG: no se pmuestra el pong " + params[0] + " \r\n"));
 }
 
-void Server::_cmdCap(Client *client, std::vector<std::string> params)
+void Server::_cmdCap(Client *client, const std::vector<std::string> &params)
 {
 	if (params.size() && (params[0] == "LS" || params[0] == "END"))
 	{
@@ -106,7 +106,7 @@ void Server::_cmdCap(Client *client, std::vector<std::string> params)
 		client->addOutBuffer(std::string("421 * CAP :Unknown command\r\n"));
 }
 
-void Server::_cmdQuit(Client *client, std::vector<std::string> params)
+void Server::_cmdQuit(Client *client, const std::vector<std::string> &params)
 {
 	std::string message = "Client <" + client->getNickName() + "> Quit \r\n";
 	if (params.size() >= 1)
@@ -114,7 +114,7 @@ void Server::_cmdQuit(Client *client, std::vector<std::string> params)
 	client->setOutBuffer(message);
 }
 
-void Server::_cmdMode(Client *client, std::vector<std::string> params)
+void Server::_cmdMode(Client *client, const std::vector<std::string> &params)
 {
 	if (client->getStatus() != REG)
 		client->addOutBuffer(std::string("451 * :You have not registered \r\n"));
@@ -203,7 +203,7 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
 }
 
-void Server::_cmdTopic(Client *client, std::vector<std::string> params)
+void Server::_cmdTopic(Client *client, const std::vector<std::string> &params)
 {
 	if (params.empty() || params.size() > 2)
 	{
@@ -281,7 +281,7 @@ void Server::_cmdKick(Client *client, std::vector<std::string> params)
 		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
 }
 
-void Server::_cmdMsg(Client *client, std::vector<std::string> params)
+void Server::_cmdMsg(Client *client, const std::vector<std::string> &params)
 {
 	if (params.size() < 2)
 	{
@@ -309,8 +309,9 @@ void Server::_cmdMsg(Client *client, std::vector<std::string> params)
 	}
 }
 
-void Server::_cmdJoin(Client *client, std::vector<std::string> params)
+void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 {
+	
 	if (params.empty())
 	{
 		client->addOutBuffer(std::string("Usage: JOIN [channel] [password]\r\n"));
@@ -356,13 +357,13 @@ void Server::addChannel(Client *client, const std::vector<std::string> &params)
 		_channels.push_back(Channel(params[0], params[1], client));
 }
 
-void Server::_broadcastAllServer(std::string message)
+void Server::_broadcastAllServer(const std::string &message)
 {
 	for (size_t i = 0; i < _clients.size(); i++)
 		_clients[i].addOutBuffer(message);
 }
 
-void Server::_cmdPrivmsg(Client *client, std::vector<std::string> params)
+void Server::_cmdPrivmsg(Client *client, const std::vector<std::string> &params)
 {
 	if (client->getStatus() != REG)
 	{

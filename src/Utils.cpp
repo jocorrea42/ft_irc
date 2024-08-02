@@ -12,7 +12,7 @@
 
 #include "Server.hpp"
 
-Client *Server::getClient(int fd)
+Client *Server::getClient(const int &fd)
 {
 	for (std::vector<Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
 		if ((*i).getFd() == fd)
@@ -20,7 +20,7 @@ Client *Server::getClient(int fd)
 	return (NULL);
 }
 
-Client *Server::getClientNick(std::string nickname)
+Client *Server::getClientNick(const std::string &nickname)
 {
 	for (std::vector<Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
 		if ((*i).getNickName() == nickname)
@@ -117,16 +117,16 @@ Server::~Server()
 	std::cout << "server destroy!!" << std::endl;
 }
 
-void Server::setFd(int fd)
+void Server::setFd(const int &fd)
 {
 	this->_fd = fd;
 }
-void Server::setPassword(std::string pass)
+void Server::setPassword(const std::string &pass)
 {
 	this->_pass = pass;
 }
 
-void Server::setPort(int port)
+void Server::setPort(const int &port)
 {
 	this->_port = port;
 }
