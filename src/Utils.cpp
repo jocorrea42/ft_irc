@@ -50,7 +50,7 @@ void Server::RemoveChannel(const std::string &name)
 		if (i->GetName() == name)
 		{
 			_channels.erase(i);
-			return;
+			break;
 		}
 }
 
