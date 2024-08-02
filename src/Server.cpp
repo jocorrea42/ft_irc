@@ -144,7 +144,7 @@ void Server::ReceiveNewData(int fd)
 			{
 				std::cout << "entro aqui en el QUIT\n";//hay que corregir el quit
 				//cuando se hace un join no se elimina el cliente de la lista ni se elimina de todos  los canales a los que pertenece
-				_cmdQuit(cli, params);
+				_cmdQuit(cli, params); 
 			}
 			else if (command == "JOIN")
 				_cmdJoin(cli, params);
