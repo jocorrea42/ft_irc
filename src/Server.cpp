@@ -65,7 +65,7 @@ void Server::ServerStart()
 					else
 					{
 						std::cout << "unexpected client disconnection send msg to " << cli->getName() << std::endl;
-						_ClearClient(_fds[i].fd);
+						_disconnectClient(cli, std::string("unexpected client disconnection send msg to " + cli->getName() + "\n"));
 					}
 				//}
 			}
@@ -85,6 +85,7 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 	if (fcntl(inConectionFd, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
 	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
+	_clients[0].sendOwnMessage();
 	addPollfd(inConectionFd);								// -> agrega un nuevo fd a la lista de poll para la escucha de un evento
 	std::cout << "CLIENT <" << inConectionFd << "> IS CONNECTED!!!" << std::endl;
 }
@@ -98,7 +99,7 @@ void Server::ReceiveNewData(int fd)
 	Client *cli = getClient(fd);
 
 	if (!cli->receiveMessage() || cli->getInBuffer().find("\r\n") == std::string::npos)
-		_ClearClient(_fd); //-> clear the client
+		_disconnectClient(cli, std::string("Client disconected")); //-> clear the client
 	else
 	{
 		std::string line = cli->getInBuffer();
@@ -141,11 +142,7 @@ void Server::ReceiveNewData(int fd)
 			else if (command == std::string("CAP"))
 				_cmdCap(cli, params);
 			else if (command == std::string("QUIT"))
-			{
-				std::cout << "entro aqui en el QUIT\n";//hay que corregir el quit
-				//cuando se hace un join no se elimina el cliente de la lista ni se elimina de todos  los canales a los que pertenece
 				_cmdQuit(cli, params); 
-			}
 			else if (command == "JOIN")
 				_cmdJoin(cli, params);
 			else if (command == "MSG")

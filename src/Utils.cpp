@@ -14,9 +14,9 @@
 
 Client *Server::getClient(const int &fd)
 {
-	for (std::vector<Client>::iterator i = _clients.begin(); i != _clients.end(); ++i)
-		if ((*i).getFd() == fd)
-			return &(*i);
+	for (size_t i = 0; i < _clients.size(); i++)
+		if (_clients[i].getFd() == fd)
+			return &_clients[i];
 	return (NULL);
 }
 
@@ -91,7 +91,6 @@ void Server::SignalHandler(int signum)
 	_Signal = true; //-> set the static boolean to true to stop the server
 }
 
-
 Server::Server()
 {
 	this->_fd = -1;
@@ -131,16 +130,15 @@ void Server::setPort(const int &port)
 	this->_port = port;
 }
 
-int Server::getPort()
+int const &Server::getPort()
 {
 	return (this->_port);
 }
 
-int Server::getFd()
+int const &Server::getFd()
 {
 	return (this->_fd);
 }
-
 
 void Server::printParam(std::vector<std::string> params)
 {
@@ -166,6 +164,8 @@ void Server::_ClearClient(int fd)
 			_clients.erase(_clients.begin() + i);
 			break;
 		}
+	// for (size_t i = 0; i < _channels.size(); i++)
+	// 		_channels[i].remove_client(fd);
 }
 
 void Server::addPollfd(int fd)
@@ -176,4 +176,32 @@ void Server::addPollfd(int fd)
 	newFdClientPoll.events = POLLIN; //-> set the event to POLLIN for reading data
 	_fds.push_back(newFdClientPoll); //-> add the server socket to the pollfd
 	_polls_size++;
+}
+
+void	Server::_broadcastClientChannel(Channel *channel, std::string msg, int fd)
+{
+	std::vector<int> clients = channel->getClients();
+
+			clients = channel->getClients();
+			Client *client;
+			for (size_t j = 0; j < clients.size(); j++)
+			{
+				client = getClient(clients[j]);
+				if (client && client->getFd() != fd)
+					client->addOutBuffer(msg);
+			}
+}
+
+
+void Server::_disconnectClient(Client* client, std::string msg)
+{
+	std::cout << "unexpected dc" << std::endl;
+	// Send a quit message to all channels the client is in + remove client from all channels it is in
+	std::string quit_msg = ":" + client->getNickName() + "!~" + client->getName() + " QUIT :" + msg + " \r\n";
+	_broadcastAllServer(quit_msg);
+	// remove client out of all joined channels
+	for (size_t i = 0; i < _channels.size(); i++)
+		if (_channels[i].isClient(client))
+			_channels[i].remove_client(client->getFd());
+	_ClearClient(client->getFd());
 }

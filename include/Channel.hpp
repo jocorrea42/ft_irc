@@ -27,7 +27,7 @@ private:
 	bool		_topicLock;
 	int			_limit;
 	std::vector<int>	_invited;
-    std::vector<Client*> _clients;
+    std::vector<int> _clients;
     std::vector<int> _admins;
 
 public:
@@ -47,7 +47,7 @@ public:
 	std::string getTopic();
     std::string GetPassword(){return this->_password;}
 	std::string GetName(){return this->_name;}
-	bool isClient(int fd);
+	bool isClient(Client *fd);
 	bool isInvited(int fd);
 	bool invite(int fd);
 	bool isAdmin(int fd);
@@ -60,7 +60,8 @@ public:
     void remove_admin(int fd);
 	void setTopic(const std::string &newTopic);
     void GiveTakeAdmin(int fd, const std::string &nick, Client *client);
-    void sendToAll(std::string msg, int fd);
+	std::vector<int>	getClients(){ return (this->_clients);}
+   // void sendToAll(std::string msg, Client *fd);
 
 };
 #endif

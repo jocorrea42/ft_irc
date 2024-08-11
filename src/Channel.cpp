@@ -33,13 +33,13 @@ Channel::~Channel(){}
 
 Channel::Channel(std::string name, Client *client): _name(name), _invOnly(false), _topicLock(false), _limit(0)
 {
-	_clients.push_back(client);
+	_clients.push_back((client->getFd()));
 	_admins.push_back(client->getFd());
 }
 
 Channel::Channel(std::string name, std::string password, Client *client): _name(name), _password(password), _invOnly(false), _topicLock(false), _limit(0)
 {
-	_clients.push_back(client);
+	_clients.push_back((client->getFd()));
 	_admins.push_back(client->getFd());
 }
 
@@ -70,10 +70,10 @@ bool Channel::isInvited(int fd)
 	return false;
 }
 
-bool Channel::isClient(int fd)
+bool Channel::isClient(Client *fd)
 {
-	for (std::vector<Client*>::iterator i = _clients.begin(); i != _clients.end(); ++i)
-		if ((*i)->getFd() == fd)
+	for (std::vector<int>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+		if ((*i) == fd->getFd())
 			return true;
 	return false;
 }
@@ -104,21 +104,23 @@ bool Channel::isAdmin(int fd)
 
 void Channel::add_client(Client *client)
 {
-	_clients.push_back(client);
+	_clients.push_back(client->getFd());
 	client->addOutBuffer(std::string("You joined #" + GetName() + " \r\n"));
 }
 
 bool Channel::remove_client(int fd)
 {
-	for (std::vector<Client*>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+	for (std::vector<int>::iterator i = _clients.begin(); i != _clients.end(); ++i)
 	{
-		if ((*i)->getFd() == fd)
+		if ((*i) == fd)
 		{
 			if (isAdmin(fd))
-				remove_admin(fd);
+			 	remove_admin(fd);
 			_clients.erase(i);
+			std::cout << "se elimino cliente <" << fd << "> del canal: " << _name << std::endl;
 			return true;
 		}
+		
 	}
 	return false;
 }
@@ -131,8 +133,11 @@ void Channel::add_admin(Client *client)
 void Channel::remove_admin(int fd)
 {
 	for (std::vector<int>::iterator i = _admins.begin(); i != _admins.end(); ++i)
-		if (*i == fd)
+		if ((*i) == fd)
+		{
 			_admins.erase(i);
+			break;
+		}
 }
 
 
@@ -183,20 +188,22 @@ void Channel::setTopic(const std::string &newTopic)
 	_topic = newTopic;
 }
 
-void Channel::sendToAll(std::string msg, int fd)
-{
-	for (std::vector<Client*>::iterator i = _clients.begin(); i != _clients.end(); ++i)
-	{
-		if ((*i)->getFd() != fd)
-			(*i)->addOutBuffer(msg);
-	}
-}
+// void Channel::sendToAll(std::string msg, Client *fd)
+// {
+// 	(void)fd;
+// 	for (size_t i = 0; i < _clients.size(); i++)
+// 	{	
+// 		std::cout << _clients[i].getNickName() << ", " << _clients[i].getIp() << ", " << i << std::endl;
+// 		//if (_clients[i].getFd() != fd->getFd())
+// 			_clients[i].addOutBuffer(msg);
+// 	}
+// }
 
 void Channel::GiveTakeAdmin(int fd, const std::string &nick, Client *client)
 {
-	for (std::vector<Client*>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+	for (std::vector<int>::iterator i = _clients.begin(); i != _clients.end(); ++i)
 	{
-		if ((*i)->getFd() == fd)
+		if ((*i) == fd)
 		{
 			if (isAdmin(fd))
 			{

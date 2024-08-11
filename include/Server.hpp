@@ -63,15 +63,17 @@ private:
 	void	_cmdInvite(Client *client, std::vector<std::string> params);
 	void	_cmdTopic(Client *client, const std::vector<std::string> &params);
 	void 	_broadcastAllServer(const std::string &message);
-	void	_cmdPrivmsg(Client* client, const std::vector<std::string> &params);
+	void	_cmdPrivmsg(Client* client, std::vector<std::string> params);
+	void	_disconnectClient(Client* client, std::string msg);
+	void	_broadcastClientChannel(Channel *channel, std::string msg, int fd);
 
 public:
 	Server(); //-> default constructor
 	Server(int port, std::string password);
 	~Server();
 	Server &operator=(Server const &other);
-	int			getFd();
-	int 		getPort();
+	int	const		&getFd();
+	int const		&getPort();
 	static bool isBotfull; // para el bonus
 	std::string getPassword();
 	Client 		*getClient(const int &fd);

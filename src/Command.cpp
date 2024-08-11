@@ -112,6 +112,9 @@ void Server::_cmdQuit(Client *client, const std::vector<std::string> &params)
 	if (params.size() >= 1)
 		message = params[0];
 	client->setOutBuffer(message);
+	close(client->getFd());
+	_disconnectClient(client, message);
+	
 }
 
 void Server::_cmdMode(Client *client, const std::vector<std::string> &params)
@@ -281,37 +284,10 @@ void Server::_cmdKick(Client *client, std::vector<std::string> params)
 		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
 }
 
-void Server::_cmdMsg(Client *client, const std::vector<std::string> &params)
-{
-	if (params.size() < 2)
-	{
-		client->addOutBuffer(std::string("Usage: MSG [#channel/nickname] [message]\r\n"));
-		return;
-	}
-	if (params[0][0] == '#')
-	{
-		if (Channel *channel = getChannel(&params[0][1]))
-		{
-			if (channel->isClient(client->getFd()))
-				channel->sendToAll(params[1], client->getFd());
-			else
-				client->addOutBuffer(std::string("You do not belong to this channel\r\n"));
-		}
-		else
-			client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
-	}
-	else
-	{
-		if (Client *target = getClientNick(params[0]))
-			target->addOutBuffer(std::string(params[1] + "\r\n"));
-		else
-			client->addOutBuffer(std::string("User " + params[0] + " does not exist\r\n"));
-	}
-}
-
 void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 {
-	
+	if (client == NULL)
+		std::cout << "Client es null\n";
 	if (params.empty())
 	{
 		client->addOutBuffer(std::string("Usage: JOIN [channel] [password]\r\n"));
@@ -329,7 +305,7 @@ void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 		client->addOutBuffer(std::string("#" + params[0] + " is full\r\n"));
 		return;
 	}
-	if (channel->isClient((int)client->getFd()))
+	if (channel->isClient(client))
 		client->addOutBuffer(std::string("You alredy joined this channel\r\n"));
 	else if (!channel->isInvOnly())
 	{
@@ -363,8 +339,9 @@ void Server::_broadcastAllServer(const std::string &message)
 		_clients[i].addOutBuffer(message);
 }
 
-void Server::_cmdPrivmsg(Client *client, const std::vector<std::string> &params)
+void Server::_cmdPrivmsg(Client *client, std::vector<std::string> params)
 {
+	int clifd = client->getFd();
 	if (client->getStatus() != REG)
 	{
 		client->addOutBuffer(std::string("451 * :You have not registered \r\n"));
@@ -388,8 +365,8 @@ void Server::_cmdPrivmsg(Client *client, const std::vector<std::string> &params)
 		{
 			if (Channel *channel = getChannel(name))
 			{
-				if (channel->isClient(client->getFd()))
-					channel->sendToAll(std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + " \r\n"), client->getFd());
+				if (channel->isClient(client))
+					_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + " \r\n"), clifd);
 				else
 					client->addOutBuffer(std::string("404 " + client->getNickName() + " " + name + " :Cannot send to channel \r\n"));
 			}
@@ -404,5 +381,34 @@ void Server::_cmdPrivmsg(Client *client, const std::vector<std::string> &params)
 			else
 				cli->addOutBuffer(std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + "\r\n"));
 		}
+	}
+}
+
+
+void Server::_cmdMsg(Client *client, const std::vector<std::string> &params)
+{
+	if (params.size() < 2)
+	{
+		client->addOutBuffer(std::string("Usage: MSG [#channel/nickname] [message]\r\n"));
+		return;
+	}
+	if (params[0][0] == '#')
+	{
+		if (Channel *channel = getChannel(&params[0][1]))
+		{
+			if (channel->isClient(client))
+				_broadcastAllServer(params[1]);
+			else
+				client->addOutBuffer(std::string("You do not belong to this channel\r\n"));
+		}
+		else
+			client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
+	}
+	else
+	{
+		if (Client *target = getClientNick(params[0]))
+			target->addOutBuffer(std::string(params[1] + "\r\n"));
+		else
+			client->addOutBuffer(std::string("User " + params[0] + " does not exist\r\n"));
 	}
 }
