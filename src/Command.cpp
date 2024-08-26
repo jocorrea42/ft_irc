@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/07/28 14:56:50 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/08/26 12:56:39 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,14 +196,14 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 				}
 				break;
 			default:
-				client->addOutBuffer(std::string("Unknown option: " + params[0] + "\r\n"));
+				client->addOutBuffer(std::string("472 " + client->getNickName() + " " + params[0] + " : Unknown option\r\n"));
 			}
 		}
 		else
-			client->addOutBuffer(std::string("You don't have admin rights\r\n"));
+			client->addOutBuffer(std::string(ERR_OPNEEDED));
 	}
 	else
-		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
+		client->addOutBuffer(std::string(ERR_NOCHANEL));
 }
 
 void Server::_cmdTopic(Client *client, const std::vector<std::string> &params)
@@ -226,10 +226,10 @@ void Server::_cmdTopic(Client *client, const std::vector<std::string> &params)
 			client->addOutBuffer(std::string("Channel topic updated\r\n"));
 		}
 		else
-			client->addOutBuffer(std::string("You don't have admin rights\r\n"));
+			client->addOutBuffer(std::string(ERR_OPNEEDED));
 	}
 	else
-		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
+		client->addOutBuffer(std::string(ERR_NOCHANEL));
 }
 
 void Server::_cmdInvite(Client *client, std::vector<std::string> params)
@@ -252,10 +252,10 @@ void Server::_cmdInvite(Client *client, std::vector<std::string> params)
 			}
 		}
 		else
-			client->addOutBuffer(std::string("You don't have admin rights\r\n"));
+			client->addOutBuffer(std::string(ERR_OPNEEDED));
 	}
 	else
-		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
+		client->addOutBuffer(std::string(ERR_NOCHANEL));
 }
 
 void Server::_cmdKick(Client *client, std::vector<std::string> params)
@@ -274,14 +274,14 @@ void Server::_cmdKick(Client *client, std::vector<std::string> params)
 				if (channel->remove_client(getClientFd(*i)))
 					client->addOutBuffer(std::string("User " + *i + " removed from channel " + channel->GetName() + "\r\n"));
 				else
-					client->addOutBuffer(std::string("User " + *i + " does not exist on channel " + channel->GetName() + "\r\n"));
+					client->addOutBuffer(std::string("441 " + client->getNickName() + " " + *i + " " + channel->GetName() + " :They aren't on that channel\r\n"));
 			}
 		}
 		else
-			client->addOutBuffer(std::string("You don't have admin rights\r\n"));
+			client->addOutBuffer(std::string(ERR_OPNEEDED));
 	}
 	else
-		client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
+		client->addOutBuffer(std::string(ERR_NOCHANEL));
 }
 
 void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
@@ -302,11 +302,11 @@ void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 	Channel *channel = getChannel(params[0]);
 	if (channel->isFull())
 	{
-		client->addOutBuffer(std::string("#" + params[0] + " is full\r\n"));
+		client->addOutBuffer(std::string("471 " + channel->GetName() + " :Cannot join channel (+l)\r\n"));
 		return;
 	}
 	if (channel->isClient(client))
-		client->addOutBuffer(std::string("You alredy joined this channel\r\n"));
+		client->addOutBuffer(std::string("443 " + client->getNickName() + " " + channel->GetName() + " :is already on channel\r\n"));
 	else if (!channel->isInvOnly())
 	{
 		if (channel->GetPassword().empty())
@@ -316,13 +316,13 @@ void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 			if (params[1] == channel->GetPassword())
 				channel->add_client(client);
 			else
-				client->addOutBuffer(std::string("Incorrect password\r\n"));
+				client->addOutBuffer(std::string("475 " + channel->GetName() + " :Cannot join channel (+k)\r\n"));
 		}
 	}
 	else if (channel->isInvited(client->getFd()))
 		channel->add_client(client);
 	else
-		client->addOutBuffer(std::string("You need an invitation in order to join this channel\r\n"));
+		client->addOutBuffer(std::string("473 " + channel->GetName() + " :Cannot join channel (+i)\r\n"));
 }
 
 void Server::addChannel(Client *client, const std::vector<std::string> &params)
@@ -399,16 +399,16 @@ void Server::_cmdMsg(Client *client, const std::vector<std::string> &params)
 			if (channel->isClient(client))
 				_broadcastAllServer(params[1]);
 			else
-				client->addOutBuffer(std::string("You do not belong to this channel\r\n"));
+				client->addOutBuffer(std::string("442 " + channel->GetName() + " :You're not on that channel\r\n"));
 		}
 		else
-			client->addOutBuffer(std::string("Channel " + params[0] + " does not exist\r\n"));
+			client->addOutBuffer(std::string("403 " + client->getNickName() + " " + params[0] + " :No such channel\r\n"));
 	}
 	else
 	{
 		if (Client *target = getClientNick(params[0]))
 			target->addOutBuffer(std::string(params[1] + "\r\n"));
 		else
-			client->addOutBuffer(std::string("User " + params[0] + " does not exist\r\n"));
+			client->addOutBuffer(std::string("401 " + client->getNickName() + " " + params[0] + " :No such nick\r\n"));
 	}
 }

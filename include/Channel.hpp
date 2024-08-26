@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/07/22 21:58:13 by apodader         ###   ########.fr       */
+/*   Updated: 2024/08/26 12:39:40 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,9 @@
 # define CHANNEL_HPP
 
 # include "Client.hpp"
+
+# define ERR_OPNEEDED "482 " + client->getNickName() + " :You're not channel operator\r\n"
+# define ERR_NOCHANEL "403 " + client->getNickName() + params[0] + ":No such channel\r\n"
 
 class Client;
 
