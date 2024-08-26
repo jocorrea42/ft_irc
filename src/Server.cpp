@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/07/28 14:59:06 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/08/11 21:48:45 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,6 +119,7 @@ void Server::ReceiveNewData(int fd)
 			// extraemos los parametros
 			while (iss >> token)
 			{
+				std::cout << token << std::endl;
 				if (token[0] == ':')
 				{ // Extract the trailing part
 					std::string trailing;
@@ -129,6 +130,7 @@ void Server::ReceiveNewData(int fd)
 				else
 					params.push_back(token); // el parametro no tiene :
 			} // Remove trailing \r from the last parameter
+			printParam(params);
 			if (!params.empty() && !params[params.size() - 1].empty() && params[params.size() - 1][params[params.size() - 1].size() - 1] == '\r')
 				params[params.size() - 1].resize(params[params.size() - 1].size() - 1);
 			if (command == std::string("PASS"))
