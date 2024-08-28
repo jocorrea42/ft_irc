@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/08/26 12:39:40 by apodader         ###   ########.fr       */
+/*   Updated: 2024/08/28 11:32:10 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,16 +40,14 @@ public:
     Channel &operator=(Channel const &other);
     Channel(std::string name, Client *client);
 	Channel(std::string name, std::string password, Client *client);
-    void SetPassword(std::string password){this->_password = password;}
+    void setPassword(std::string password){this->_password = password;}
     void SetName(std::string name){this->_name = name;}
-	void setInvOnly();
-	void unsetInvOnly();
-	void setTopicLock();
-	void unsetTopicLock();
+	void setInvOnly(bool set){_invOnly = set;};
+	void setTopicLock(bool set){_topicLock = set;};
 	void setLimit(int n);
 	std::string getTopic();
-    std::string GetPassword(){return this->_password;}
-	std::string GetName(){return this->_name;}
+    std::string getPassword(){return this->_password;}
+	std::string getName(){return this->_name;}
 	bool isClient(Client *fd);
 	bool isInvited(int fd);
 	bool invite(int fd);
@@ -62,9 +60,9 @@ public:
     bool remove_client(int fd);
     void remove_admin(int fd);
 	void setTopic(const std::string &newTopic);
-    void GiveTakeAdmin(int fd, const std::string &nick, Client *client);
+    void giveTakeAdmin(int fd, const std::string &nick, Client *client);
 	std::vector<int>	getClients(){ return (this->_clients);}
-   // void sendToAll(std::string msg, Client *fd);
+	std::string			getMode();
 
 };
 #endif

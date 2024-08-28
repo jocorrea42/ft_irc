@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/07/28 14:56:18 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/08/28 11:45:04 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ int Server::getClientFd(const std::string &nick)
 Channel *Server::getChannel(const std::string &name)
 {
 	for (std::vector<Channel>::iterator i = _channels.begin(); i != _channels.end(); ++i)
-		if (i->GetName() == name)
+		if (i->getName() == name)
 			return &(*i);
 	return NULL;
 }
@@ -47,7 +47,7 @@ Channel *Server::getChannel(const std::string &name)
 void Server::RemoveChannel(const std::string &name)
 {
 	for (std::vector<Channel>::iterator i = _channels.begin(); i != _channels.end(); ++i)
-		if (i->GetName() == name)
+		if (i->getName() == name)
 		{
 			_channels.erase(i);
 			break;

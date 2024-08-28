@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/07/22 21:59:07 by apodader         ###   ########.fr       */
+/*   Updated: 2024/08/28 11:32:12 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ bool Channel::isAdmin(int fd)
 void Channel::add_client(Client *client)
 {
 	_clients.push_back(client->getFd());
-	client->addOutBuffer(std::string("You joined #" + GetName() + " \r\n"));
+	client->addOutBuffer(std::string("You joined #" + getName() + " \r\n"));
 }
 
 bool Channel::remove_client(int fd)
@@ -140,27 +140,6 @@ void Channel::remove_admin(int fd)
 		}
 }
 
-
-void Channel::setInvOnly()
-{
-	_invOnly = true;
-}
-
-void Channel::unsetInvOnly()
-{
-	_invOnly = false;
-}
-
-void Channel::setTopicLock()
-{
-	_topicLock = true;
-}
-
-void Channel::unsetTopicLock()
-{
-	_topicLock = false;
-}
-
 void Channel::setLimit(int n)
 {
 	_limit = n;
@@ -188,18 +167,7 @@ void Channel::setTopic(const std::string &newTopic)
 	_topic = newTopic;
 }
 
-// void Channel::sendToAll(std::string msg, Client *fd)
-// {
-// 	(void)fd;
-// 	for (size_t i = 0; i < _clients.size(); i++)
-// 	{	
-// 		std::cout << _clients[i].getNickName() << ", " << _clients[i].getIp() << ", " << i << std::endl;
-// 		//if (_clients[i].getFd() != fd->getFd())
-// 			_clients[i].addOutBuffer(msg);
-// 	}
-// }
-
-void Channel::GiveTakeAdmin(int fd, const std::string &nick, Client *client)
+void Channel::giveTakeAdmin(int fd, const std::string &nick, Client *client)
 {
 	for (std::vector<int>::iterator i = _clients.begin(); i != _clients.end(); ++i)
 	{
@@ -220,3 +188,21 @@ void Channel::GiveTakeAdmin(int fd, const std::string &nick, Client *client)
 	}
 	client->addOutBuffer(std::string(nick + " is not part of this channel\r\n"));
 }
+
+std::string			Channel::getMode()
+{
+	std::string mode = "+";
+	if (_invOnly)
+		mode += "i";
+	if (_topicLock)
+		mode += "t";
+	if (!getPassword().empty())
+		mode += "+k " + getPassword() + " ";
+	if (_limit)
+	{
+		std::stringstream userLimitString;
+		userLimitString << _limit;
+		mode += "l " + userLimitString.str();
+	}
+	return (mode);
+}	
