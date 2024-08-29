@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/08/11 21:48:45 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/29 10:04:23 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,11 +119,11 @@ void Server::ReceiveNewData(int fd)
 			// extraemos los parametros
 			while (iss >> token)
 			{
-				std::cout << token << std::endl;
 				if (token[0] == ':')
 				{ // Extract the trailing part
 					std::string trailing;
 					std::getline(iss, trailing);				  // extrae todo el texto
+					std::cout << "Params: " << trailing << std::endl;
 					params.push_back(token.substr(1) + trailing); // quita los dos puntos
 					break;
 				}

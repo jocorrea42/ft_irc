@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/08/28 11:44:45 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/29 11:01:56 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,10 @@ void Server::_cmdMode(Client *client, const std::vector<std::string> &params)
 	else
 	{
 		std::string target = params[0];
-		if (target[0] == '#' || target[0] == '&') // channel mode
-			_cmdChannelMode(client, params);
-		else // user mode
-			client->addOutBuffer(std::string("502 " + client->getNickName() + " :Cannot change mode for other users\r\n"));
+		// if (target[0] == '#' || target[0] == '&') // channel mode
+		_cmdChannelMode(client, params);
+		// else // user mode
+		//	client->addOutBuffer(std::string("502 " + client->getNickName() + " :Cannot change mode for other users\r\n"));
 	}
 }
 
@@ -62,35 +62,57 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 							break;
 						case 'k':
 							if (index < params.size())
-							{
-								channel->setPassword(setMode ? params[index++] : "");//si el mode es + agrega el siguiente parametro como pass
-							}
+								channel->setPassword(setMode ? params[index++] : ""); // si el mode es + agrega el siguiente parametro como pass
 							else
 							{
 								client->addOutBuffer(std::string("461 " + client->getNickName() + " MODE :Not enough parameters\r\n"));
-								return ;
+								return;
 							}
 							_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " MODE " + params[0] + " " + (setMode ? "+k" : "-k") + " " + (setMode ? channel->getPassword() : "") + "\r\n"), -1);
 							index++;
 							break;
 						case 'o':
-							for (std::vector<std::string>::iterator i = params.begin() + 2; i != params.end(); ++i)
-								channel->giveTakeAdmin(getClientFd(*i), *i, client);
-							break;
-						case 'l':
-							if (params.size() > 2)
+							if (index < params.size())
 							{
-								channel->setLimit(atoi(params[2].c_str()));
-								client->addOutBuffer(std::string("Limit set to " + params[2] + "\r\n"));
+								std::string nickname = params[index++];
+								Client *client = getClientNick(nickname);
+								if (client)
+								{
+									if (setMode)
+										channel->addAdmin(client);
+									else
+										channel->removeAdmin(client->getFd());
+									_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " MODE " + params[0] + " " + (setMode ? "+o" : "-o") + " " + nickname + "\r\n"), -1);
+								}
+								else
+								{
+									client->addOutBuffer(std::string("401 " + client->getNickName() + " " + nickname + " :No such nick\r\n"));
+								}
 							}
 							else
 							{
+								client->addOutBuffer(std::string("461 " + client->getNickName() + " MODE :Not enough parameters\r\n"));
+							}
+							break;
+						case 'l':
+							if (setMode && index < params.size())
+							{
+								channel->setLimit(atoi(params[index++].c_str()));
+								_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " MODE " + params[0] + " +l " + params[index - 1] + "\r\n"), -1);
+							}
+							else if (!setMode)
+							{
 								channel->setLimit(0);
-								client->addOutBuffer(std::string("Limit removed\r\n"));
+								_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " MODE " + params[0] + " -l\r\n"), -1);
+							}
+							else
+							{
+								client->addOutBuffer("461 " + client->getNickName() + " MODE :Not enough parameters\r\n");
 							}
 							break;
 						default:
-							client->addOutBuffer(std::string("472 " + client->getNickName() + " " + params[0] + " : Unknown option\r\n"));
+							client->addOutBuffer(std::string("472 " + client->getNickName() + " " + std::string(1, modeChar) + " :is unknown mode char to me\r\n"));
+							break;
 						}
 					}
 				}
@@ -105,22 +127,30 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 
 void Server::_cmdTopic(Client *client, const std::vector<std::string> &params)
 {
-	if (params.empty() || params.size() > 2)
+	if (params.size() < 1)
 	{
-		client->addOutBuffer(std::string("Usage: TOPIC [channel] [\"new topic\"]\r\n"));
+		client->addOutBuffer("461 " + client->getNickName() + " INVITE :Not enough parameters\r\n");
 		return;
 	}
 	if (Channel *channel = getChannel(params[0]))
 	{
+		if (!channel->isClient(client))
+		{
+			client->addOutBuffer("442 * " + params[0] + " :You're not on that channel\r\n");
+			return;
+		}
 		if (params.size() == 1)
 		{
-			client->addOutBuffer(channel->getTopic() + "\r\n");
+			if (channel->getTopic() == std::string(""))
+				client->addOutBuffer("331 " + params[0] + " :No topic is set\r\n");
+			else
+				client->addOutBuffer("332 " + params[0] + " :" + channel->getTopic() + "\r\n");
 			return;
 		}
 		if (!channel->isTopicLocked() || channel->isAdmin(client->getFd()))
 		{
 			channel->setTopic(params[1]);
-			client->addOutBuffer(std::string("Channel topic updated\r\n"));
+			_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " TOPIC " + params[0] + " :" + channel->getTopic() + "\r\n"), -1);
 		}
 		else
 			client->addOutBuffer(std::string(ERR_OPNEEDED));
@@ -168,7 +198,7 @@ void Server::_cmdKick(Client *client, std::vector<std::string> params)
 		{
 			for (std::vector<std::string>::iterator i = params.begin() + 1; i != params.end(); ++i)
 			{
-				if (channel->remove_client(getClientFd(*i)))
+				if (channel->removeClient(getClientFd(*i)))
 					client->addOutBuffer(std::string("User " + *i + " removed from channel " + channel->getName() + "\r\n"));
 				else
 					client->addOutBuffer(std::string("441 " + client->getNickName() + " " + *i + " " + channel->getName() + " :They aren't on that channel\r\n"));
@@ -207,17 +237,17 @@ void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 	else if (!channel->isInvOnly())
 	{
 		if (channel->getPassword().empty())
-			channel->add_client(client);
+			channel->addClient(client);
 		else if (params.size() > 1)
 		{
 			if (params[1] == channel->getPassword())
-				channel->add_client(client);
+				channel->addClient(client);
 			else
 				client->addOutBuffer(std::string("475 " + channel->getName() + " :Cannot join channel (+k)\r\n"));
 		}
 	}
 	else if (channel->isInvited(client->getFd()))
-		channel->add_client(client);
+		channel->addClient(client);
 	else
 		client->addOutBuffer(std::string("473 " + channel->getName() + " :Cannot join channel (+i)\r\n"));
 }

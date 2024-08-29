@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/08/28 11:32:12 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/29 09:52:19 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,20 +102,20 @@ bool Channel::isAdmin(int fd)
 	return false;
 }
 
-void Channel::add_client(Client *client)
+void Channel::addClient(Client *client)
 {
 	_clients.push_back(client->getFd());
 	client->addOutBuffer(std::string("You joined #" + getName() + " \r\n"));
 }
 
-bool Channel::remove_client(int fd)
+bool Channel::removeClient(int fd)
 {
 	for (std::vector<int>::iterator i = _clients.begin(); i != _clients.end(); ++i)
 	{
 		if ((*i) == fd)
 		{
 			if (isAdmin(fd))
-			 	remove_admin(fd);
+			 	removeAdmin(fd);
 			_clients.erase(i);
 			std::cout << "se elimino cliente <" << fd << "> del canal: " << _name << std::endl;
 			return true;
@@ -125,12 +125,12 @@ bool Channel::remove_client(int fd)
 	return false;
 }
 
-void Channel::add_admin(Client *client)
+void Channel::addAdmin(Client *client)
 {
 	_admins.push_back(client->getFd());
 }
 
-void Channel::remove_admin(int fd)
+void Channel::removeAdmin(int fd)
 {
 	for (std::vector<int>::iterator i = _admins.begin(); i != _admins.end(); ++i)
 		if ((*i) == fd)
@@ -176,7 +176,7 @@ void Channel::giveTakeAdmin(int fd, const std::string &nick, Client *client)
 			if (isAdmin(fd))
 			{
 				client->addOutBuffer(std::string(nick + "'s operator rights removed\r\n"));
-				remove_admin(fd);
+				removeAdmin(fd);
 			}
 			else
 			{

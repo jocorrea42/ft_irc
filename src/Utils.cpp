@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/08/28 11:45:04 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/29 09:54:24 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,8 +164,6 @@ void Server::_ClearClient(int fd)
 			_clients.erase(_clients.begin() + i);
 			break;
 		}
-	// for (size_t i = 0; i < _channels.size(); i++)
-	// 		_channels[i].remove_client(fd);
 }
 
 void Server::addPollfd(int fd)
@@ -202,6 +200,6 @@ void Server::_disconnectClient(Client* client, std::string msg)
 	// remove client out of all joined channels
 	for (size_t i = 0; i < _channels.size(); i++)
 		if (_channels[i].isClient(client))
-			_channels[i].remove_client(client->getFd());
+			_channels[i].removeClient(client->getFd());
 	_ClearClient(client->getFd());
 }

@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/08/28 11:32:10 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/29 09:26:27 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,10 +55,10 @@ public:
 	bool isInvOnly();
 	bool isTopicLocked();
 	bool isFull();
-    void add_client(Client *client);
-    void add_admin(Client *client);
-    bool remove_client(int fd);
-    void remove_admin(int fd);
+    void addClient(Client *client);
+    void addAdmin(Client *client);
+    bool removeClient(int fd);
+    void removeAdmin(int fd);
 	void setTopic(const std::string &newTopic);
     void giveTakeAdmin(int fd, const std::string &nick, Client *client);
 	std::vector<int>	getClients(){ return (this->_clients);}
