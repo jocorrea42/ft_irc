@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/08/29 09:52:19 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/30 09:55:19 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,11 +85,11 @@ bool Channel::isInvOnly()
 
 bool Channel::invite(int fd)
 {
-	if (fd < 0)
-		return false;
-	for (std::vector<int>::iterator i = _invited.begin() + 1; i != _invited.end(); ++i)
-		if (*i == fd)
-			return true;
+	// if (fd < 0)
+	// 	return false;
+	// for (std::vector<int>::iterator i = _invited.begin() + 1; i != _invited.end(); ++i)
+	// 	if (*i == fd)
+	// 		return true;
 	_invited.push_back(fd);
 	return true;
 }

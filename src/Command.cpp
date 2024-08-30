@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/08/29 11:01:56 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/30 10:04:55 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,13 +75,13 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 							if (index < params.size())
 							{
 								std::string nickname = params[index++];
-								Client *client = getClientNick(nickname);
-								if (client)
+								Client *target = getClientNick(nickname);
+								if (target)
 								{
 									if (setMode)
-										channel->addAdmin(client);
+										channel->addAdmin(target);
 									else
-										channel->removeAdmin(client->getFd());
+										channel->removeAdmin(target->getFd());
 									_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " MODE " + params[0] + " " + (setMode ? "+o" : "-o") + " " + nickname + "\r\n"), -1);
 								}
 								else
@@ -163,23 +163,34 @@ void Server::_cmdInvite(Client *client, std::vector<std::string> params)
 {
 	if (params.size() < 2)
 	{
-		client->addOutBuffer(std::string("Usage: INVITE [channel] [nickname] [...]\r\n"));
+		client->addOutBuffer(std::string("461 " + client->getNickName() + " INVITE :Not enough parameters\r\n"));
 		return;
 	}
-	if (Channel *channel = getChannel(params[0]))
+	if (Channel *tChannel = getChannel(params[1]))
 	{
-		if (channel->isAdmin(client->getFd()))
+		if (tChannel->isClient(client))
 		{
-			for (std::vector<std::string>::iterator i = params.begin() + 1; i != params.end(); ++i)
+			if (tChannel->isAdmin(client->getFd()))
 			{
-				if (channel->invite(getClientFd(*i)))
-					client->addOutBuffer(std::string("User " + *i + " invited\r\n"));
-				else
-					client->addOutBuffer(std::string("401 " + client->getNickName() + " " + *i + " :No such nick\r\n"));
+				Client *target = getClientNick(params[0]);
+				if (!target)
+				{
+					client->addOutBuffer(std::string("401 " + params[0] + " :No such nick/channel\r\n"));
+					return;
+				}
+				if (tChannel->isClient(target))
+				{
+					client->addOutBuffer(std::string("443 " + params[0] + " " + params[1] + " :is already on channel\r\n"));
+					return;
+				}
+				if (tChannel->invite(target->getFd()))
+					client->addOutBuffer(std::string("341 " + params[0] + " " + params[1] + "\r\n"));
 			}
+			else
+				client->addOutBuffer(std::string(ERR_OPNEEDED));
 		}
 		else
-			client->addOutBuffer(std::string(ERR_OPNEEDED));
+			client->addOutBuffer(std::string("442 " + client->getNickName() + " :You're not on that channel\r\n"));
 	}
 	else
 		client->addOutBuffer(std::string(ERR_NOCHANEL));
