@@ -3,44 +3,29 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/08/30 09:55:19 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/31 18:01:19 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
-// Channel();
-//     ~Channel();
-//     Channel(Channel const &src);
-//     Channel &operator=(Channel const &src);
-//     void SetPassword(std::string password);
-//     void SetName(std::string name);
-//     std::string GetPassword();
-// 	std::string GetName();
-//     void add_client(Client newClient);
-//     void add_admin(Client newClient);
-//     void remove_client(int fd);
-//     void remove_admin(int fd);
-//     bool change_clientToAdmin(std::string &nick);
-//     bool change_adminToClient(std::string &nick);
-// 	void sendTo_all(std::string rpl1, int fd);
 Channel::Channel(){}
 
 Channel::~Channel(){}
 
-Channel::Channel(std::string name, Client *client): _name(name), _invOnly(false), _topicLock(false), _limit(0)
+Channel::Channel(std::string name, Client *client): _name(name), _password(""), _invOnly(false), _topicLock(false), _limit(0)
 {
-	_clients.push_back((client->getFd()));
-	_admins.push_back(client->getFd());
+	_clients.push_back((client->getNickName()));
+	_admins.push_back(client->getNickName());
 }
 
 Channel::Channel(std::string name, std::string password, Client *client): _name(name), _password(password), _invOnly(false), _topicLock(false), _limit(0)
 {
-	_clients.push_back((client->getFd()));
-	_admins.push_back(client->getFd());
+	_clients.push_back((client->getNickName()));
+	_admins.push_back(client->getNickName());
 }
 
 Channel &Channel::operator=(Channel const &other)
@@ -57,23 +42,21 @@ Channel &Channel::operator=(Channel const &other)
     return (*this);
 }
 
-bool Channel::isInvited(int fd)
+bool Channel::isInvited(std::string nick)
 {
-	for (std::vector<int>::iterator i = _invited.begin(); i != _invited.end(); ++i)
+	
+	for (std::vector<std::string>::iterator i = _invited.begin(); i != _invited.end(); ++i)
 	{
-		if (*i == fd)
-		{
-			_invited.erase(i);
+		if (*i == nick)
 			return true;
-		}
 	}
 	return false;
 }
 
 bool Channel::isClient(Client *fd)
 {
-	for (std::vector<int>::iterator i = _clients.begin(); i != _clients.end(); ++i)
-		if ((*i) == fd->getFd())
+	for (std::vector<std::string>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+		if ((*i) == fd->getNickName())
 			return true;
 	return false;
 }
@@ -83,41 +66,37 @@ bool Channel::isInvOnly()
 	return _invOnly;
 }
 
-bool Channel::invite(int fd)
+void Channel::invite(std::string const &nick)
 {
-	// if (fd < 0)
-	// 	return false;
-	// for (std::vector<int>::iterator i = _invited.begin() + 1; i != _invited.end(); ++i)
-	// 	if (*i == fd)
-	// 		return true;
-	_invited.push_back(fd);
-	return true;
+	std::string client(nick);
+	_invited.push_back(client);
+	
 }
 
-bool Channel::isAdmin(int fd)
+bool Channel::isAdmin(std::string nick)
 {
-	for (std::vector<int>::iterator i = _admins.begin(); i != _admins.end(); ++i)
-		if (*i == fd)
+	for (std::vector<std::string>::iterator i = _admins.begin(); i != _admins.end(); ++i)
+		if (*i == nick)
 			return true;
 	return false;
 }
 
 void Channel::addClient(Client *client)
 {
-	_clients.push_back(client->getFd());
-	client->addOutBuffer(std::string("You joined #" + getName() + " \r\n"));
+	_clients.push_back(client->getNickName());
+	client->addOutBuffer(std::string("You joined " + getName() + " \r\n"));
 }
 
-bool Channel::removeClient(int fd)
+bool Channel::removeClient(std::string nick)
 {
-	for (std::vector<int>::iterator i = _clients.begin(); i != _clients.end(); ++i)
+	for (std::vector<std::string>::iterator i = _clients.begin(); i != _clients.end(); ++i)
 	{
-		if ((*i) == fd)
+		if ((*i) == nick)
 		{
-			if (isAdmin(fd))
-			 	removeAdmin(fd);
+			if (isAdmin(nick))
+			 	removeAdmin(nick);
 			_clients.erase(i);
-			std::cout << "se elimino cliente <" << fd << "> del canal: " << _name << std::endl;
+			std::cout << "se elimino cliente <" << nick << "> del canal: " << _name << std::endl;
 			return true;
 		}
 		
@@ -127,15 +106,25 @@ bool Channel::removeClient(int fd)
 
 void Channel::addAdmin(Client *client)
 {
-	_admins.push_back(client->getFd());
+	_admins.push_back(client->getNickName());
 }
 
-void Channel::removeAdmin(int fd)
+void Channel::removeAdmin(std::string nick)
 {
-	for (std::vector<int>::iterator i = _admins.begin(); i != _admins.end(); ++i)
-		if ((*i) == fd)
+	for (std::vector<std::string>::iterator i = _admins.begin(); i != _admins.end(); ++i)
+		if ((*i) == nick)
 		{
 			_admins.erase(i);
+			break;
+		}
+}
+
+void Channel::removeInvited(std::string const &nick)
+{
+	for (std::vector<std::string>::iterator i = _invited.begin(); i != _invited.end(); ++i)
+		if ((*i) == nick)
+		{
+			_invited.erase(i);
 			break;
 		}
 }
@@ -165,28 +154,6 @@ std::string Channel::getTopic()
 void Channel::setTopic(const std::string &newTopic)
 {
 	_topic = newTopic;
-}
-
-void Channel::giveTakeAdmin(int fd, const std::string &nick, Client *client)
-{
-	for (std::vector<int>::iterator i = _clients.begin(); i != _clients.end(); ++i)
-	{
-		if ((*i) == fd)
-		{
-			if (isAdmin(fd))
-			{
-				client->addOutBuffer(std::string(nick + "'s operator rights removed\r\n"));
-				removeAdmin(fd);
-			}
-			else
-			{
-				client->addOutBuffer(std::string("operator rights granted to " + nick + "\r\n"));
-				_admins.push_back(fd);
-			}
-			return;
-		}
-	}
-	client->addOutBuffer(std::string(nick + " is not part of this channel\r\n"));
 }
 
 std::string			Channel::getMode()

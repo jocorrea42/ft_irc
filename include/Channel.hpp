@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/08/29 09:26:27 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/31 17:55:11 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,9 @@ private:
 	bool		_invOnly;
 	bool		_topicLock;
 	int			_limit;
-	std::vector<int>	_invited;
-    std::vector<int> _clients;
-    std::vector<int> _admins;
+	std::vector<std::string> _invited;
+    std::vector<std::string> _clients;
+    std::vector<std::string> _admins;
 
 public:
     Channel();
@@ -49,19 +49,20 @@ public:
     std::string getPassword(){return this->_password;}
 	std::string getName(){return this->_name;}
 	bool isClient(Client *fd);
-	bool isInvited(int fd);
-	bool invite(int fd);
-	bool isAdmin(int fd);
+	bool isInvited(std::string nick);
+	void invite(std::string const &nick);
+	bool isAdmin(std::string nick);
 	bool isInvOnly();
 	bool isTopicLocked();
 	bool isFull();
     void addClient(Client *client);
     void addAdmin(Client *client);
-    bool removeClient(int fd);
-    void removeAdmin(int fd);
+    bool removeClient(std::string nick);
+    void removeAdmin(std::string nick);
+	void removeInvited(std::string const &nick);
 	void setTopic(const std::string &newTopic);
     void giveTakeAdmin(int fd, const std::string &nick, Client *client);
-	std::vector<int>	getClients(){ return (this->_clients);}
+	std::vector<std::string>	getClients(){ return (this->_clients);}
 	std::string			getMode();
 
 };

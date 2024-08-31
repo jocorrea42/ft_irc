@@ -3,14 +3,22 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/08/29 09:54:24 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/31 17:19:52 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+
+Client *Server::getClient(const std::string &nick)
+{
+	for (size_t i = 0; i < _clients.size(); i++)
+		if (_clients[i].getNickName() == nick)
+			return &_clients[i];
+	return (NULL);
+}
 
 Client *Server::getClient(const int &fd)
 {
@@ -178,7 +186,7 @@ void Server::addPollfd(int fd)
 
 void	Server::_broadcastClientChannel(Channel *channel, std::string msg, int fd)
 {
-	std::vector<int> clients = channel->getClients();
+	std::vector<std::string> clients = channel->getClients();
 
 			clients = channel->getClients();
 			Client *client;
@@ -198,8 +206,8 @@ void Server::_disconnectClient(Client* client, std::string msg)
 	std::string quit_msg = ":" + client->getNickName() + "!~" + client->getName() + " QUIT :" + msg + " \r\n";
 	_broadcastAllServer(quit_msg);
 	// remove client out of all joined channels
-	for (size_t i = 0; i < _channels.size(); i++)
-		if (_channels[i].isClient(client))
-			_channels[i].removeClient(client->getFd());
+	// for (size_t i = 0; i < _channels.size(); i++)
+	// 	if (_channels[i].isClient(client))
+	// 		_channels[i].removeClient(client->getFd());
 	_ClearClient(client->getFd());
 }

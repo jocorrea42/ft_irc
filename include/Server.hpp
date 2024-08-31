@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/07/22 16:04:02 by apodader         ###   ########.fr       */
+/*   Updated: 2024/08/31 17:19:18 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,7 @@ public:
 	static bool isBotfull; // para el bonus
 	std::string getPassword();
 	Client 		*getClient(const int &fd);
+	Client 		*getClient(const std::string &nick);
 	Client 		*getClientNick(const std::string &nick);
 	int			getClientFd(const std::string &nick);
 	void 		setFd(const int &fd);

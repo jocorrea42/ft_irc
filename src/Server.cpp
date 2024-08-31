@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/08/29 10:04:23 by fili             ###   ########.fr       */
+/*   Updated: 2024/08/31 14:53:18 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,18 +103,18 @@ void Server::ReceiveNewData(int fd)
 	else
 	{
 		std::string line = cli->getInBuffer();
+		cli->cleanInBuffer();
 		while (line.size() > 0)
 		{
 			sms = line.substr(0, line.find("\r\n"));
 			line.erase(0, line.find("\r\n") + 2);
 			std::cout << "Message from " << cli->getNickName() << ": " << sms << std::endl;
-			cli->cleanInBuffer();
 			params.clear();
 			// Extraer parametros y comandos
 			std::istringstream iss(sms);
 			if (sms[0] == ':')
 				iss >> token; // Read and discard the prefix
-			// extrae el comando
+			//extrae el comando
 			iss >> command;
 			// extraemos los parametros
 			while (iss >> token)
@@ -123,7 +123,7 @@ void Server::ReceiveNewData(int fd)
 				{ // Extract the trailing part
 					std::string trailing;
 					std::getline(iss, trailing);				  // extrae todo el texto
-					std::cout << "Params: " << trailing << std::endl;
+					//std::cout << "Params: " << trailing << std::endl;
 					params.push_back(token.substr(1) + trailing); // quita los dos puntos
 					break;
 				}
@@ -147,8 +147,8 @@ void Server::ReceiveNewData(int fd)
 				_cmdQuit(cli, params); 
 			else if (command == "JOIN")
 				_cmdJoin(cli, params);
-			else if (command == "MSG")
-				_cmdMsg(cli, params);
+			// else if (command == "MSG")
+			// 	_cmdMsg(cli, params);
 			else if (command == "PRIVMSG")
 				_cmdPrivmsg(cli, params);
 			else if (command == "KICK")
