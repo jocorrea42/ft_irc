@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/08/31 17:19:52 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/01 15:59:55 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,13 +201,22 @@ void	Server::_broadcastClientChannel(Channel *channel, std::string msg, int fd)
 
 void Server::_disconnectClient(Client* client, std::string msg)
 {
-	std::cout << "unexpected dc" << std::endl;
-	// Send a quit message to all channels the client is in + remove client from all channels it is in
+	std::cout << "unexpected client disconnection send msg to " << client->getName() << std::endl;
 	std::string quit_msg = ":" + client->getNickName() + "!~" + client->getName() + " QUIT :" + msg + " \r\n";
 	_broadcastAllServer(quit_msg);
-	// remove client out of all joined channels
-	// for (size_t i = 0; i < _channels.size(); i++)
-	// 	if (_channels[i].isClient(client))
-	// 		_channels[i].removeClient(client->getFd());
 	_ClearClient(client->getFd());
+}
+
+std::vector<std::string> Server::_splitStr(const std::string& str, char delimiter)
+{
+	std::vector<std::string> tokens;
+	std::istringstream iss(str);
+	std::string token;
+
+	while (std::getline(iss, token, delimiter))
+	{
+		tokens.push_back(token);
+	}
+
+	return tokens;
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/08/31 14:53:18 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/01 15:02:29 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,7 @@ void Server::ServerStart()
 	if (listen(_fd, SOMAXCONN) == -1) //-> listen for incoming connections and making the socket a passive socket
 		throw(std::runtime_error("listen() failed"));
 	addPollfd(_fd);
-	std::cout << "IRC SERVER <" << _fd << "> I AM ALIVE" << std::endl;
-	std::cout << "SERVER WAIT FOR CLIENT CONNECTIONS .......\n";
+	std::cout << "IRC SERVER <" << _fd << "> I AM ALIVE\nSERVER WAIT FOR CLIENT CONNECTIONS .......\n";
 	while (!(this->_Signal))											 //-> run the server until the signal is received
 	{																	 // poll(fdsarray, fdsarraysize, time) el time en -1 bloquea hasta que exita evento en el poll
 		if ((poll(&_fds[0], _polls_size, -1) == -1) && _Signal == false) // codigo para ver si ocurrio un evento
@@ -58,16 +57,10 @@ void Server::ServerStart()
 			if (_fds[i].fd != _fd)
 			{
 				cli = getClient((int)_fds[i].fd);
-				// if (cli->getOutBuffer().size())
-				// {
-					if (cli->sendOwnMessage())
-						cli->cleanOutBuffer();
-					else
-					{
-						std::cout << "unexpected client disconnection send msg to " << cli->getName() << std::endl;
-						_disconnectClient(cli, std::string("unexpected client disconnection send msg to " + cli->getName() + "\n"));
-					}
-				//}
+				if (cli->sendOwnMessage())
+					cli->cleanOutBuffer();
+				else
+					_disconnectClient(cli, std::string("unexpected client disconnection send msg to " + cli->getName() + "\n"));
 			}
 	}
 	_CloseFds();
@@ -86,7 +79,7 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
 	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
 	_clients[0].sendOwnMessage();
-	addPollfd(inConectionFd);								// -> agrega un nuevo fd a la lista de poll para la escucha de un evento
+	addPollfd(inConectionFd); // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
 	std::cout << "CLIENT <" << inConectionFd << "> IS CONNECTED!!!" << std::endl;
 }
 
@@ -109,21 +102,17 @@ void Server::ReceiveNewData(int fd)
 			sms = line.substr(0, line.find("\r\n"));
 			line.erase(0, line.find("\r\n") + 2);
 			std::cout << "Message from " << cli->getNickName() << ": " << sms << std::endl;
-			params.clear();
-			// Extraer parametros y comandos
+			params.clear(); // Extraer parametros y comandos
 			std::istringstream iss(sms);
 			if (sms[0] == ':')
-				iss >> token; // Read and discard the prefix
-			//extrae el comando
-			iss >> command;
-			// extraemos los parametros
-			while (iss >> token)
+				iss >> token;	 // Read and discard the prefix
+			iss >> command;		 // extrae el comando
+			while (iss >> token) // extraemos los parametros
 			{
 				if (token[0] == ':')
 				{ // Extract the trailing part
 					std::string trailing;
 					std::getline(iss, trailing);				  // extrae todo el texto
-					//std::cout << "Params: " << trailing << std::endl;
 					params.push_back(token.substr(1) + trailing); // quita los dos puntos
 					break;
 				}
@@ -144,11 +133,9 @@ void Server::ReceiveNewData(int fd)
 			else if (command == std::string("CAP"))
 				_cmdCap(cli, params);
 			else if (command == std::string("QUIT"))
-				_cmdQuit(cli, params); 
+				_cmdQuit(cli, params);
 			else if (command == "JOIN")
 				_cmdJoin(cli, params);
-			// else if (command == "MSG")
-			// 	_cmdMsg(cli, params);
 			else if (command == "PRIVMSG")
 				_cmdPrivmsg(cli, params);
 			else if (command == "KICK")

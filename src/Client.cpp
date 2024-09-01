@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:25:16 by fili              #+#    #+#             */
-/*   Updated: 2024/07/11 20:21:42 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/01 15:01:48 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,20 +40,13 @@ void Client::nextStatus()
 int    Client::sendOwnMessage()
 {
 	int ret = send(_fd, NULL, 0, 0);
-	if (ret == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
-	{
-		// The writing operation would block
+	if (ret == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))// The writing operation would block
 		return 0;
-	}
-	else if (ret == -1)
-	{
-		// -1 == disconected client
+	else if (ret == -1)// -1 == disconected client
 		return 0;
-	}
 	int bytes = send(_fd, _outBuffer.c_str(), _outBuffer.length(), 0);
 	if (bytes == -1 && errno != EAGAIN && errno != EWOULDBLOCK)// -1 == disconected client
 			return 0;///mal
-	//_outBuffer.clear();
 	return (1);//bien
 }
 
