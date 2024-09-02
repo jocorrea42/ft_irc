@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/02 10:16:57 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/02 10:51:02 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,21 +164,24 @@ void Server::_cmdInvite(Client *client, std::vector<std::string> params)
 void Server::_cmdKick(Client *client, std::vector<std::string> params)
 {
 	if (params.size() < 2)
-	{
-		client->addOutBuffer(std::string("Usage: KICK [channel] [nickname] [...]\r\n"));
-		return;
-	}
-	if (Channel *channel = getChannel(params[0]))
+		client->addOutBuffer(std::string(ERR_PARAM461));
+	else if (Channel *channel = getChannel(params[0]))
 	{
 		if (channel->isAdmin(client->getNickName()))
 		{
-			for (std::vector<std::string>::iterator i = params.begin() + 1; i != params.end(); ++i)
-			{
-				if (channel->removeClient(*i))
-					client->addOutBuffer(std::string("User " + *i + " removed from channel " + channel->getName() + "\r\n"));
+			std::string reason;
+			(params.size() >= 3)? reason = "No reason specified":reason = params[2];
+			if (channel->removeClient(client->getNickName()))
+					_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " KICK " + params[0] + " " + params[1] + " :" + reason + "\r\n"), -1);
 				else
-					client->addOutBuffer(std::string("441 " + client->getNickName() + " " + *i + " " + channel->getName() + " :They aren't on that channel\r\n"));
-			}
+					client->addOutBuffer(std::string("441 " + client->getNickName() + " " + params[1] + " " + params[0] + " :They aren't on that channel\r\n"));
+			// for (std::vector<std::string>::iterator i = params.begin() + 1; i != params.end(); ++i)
+			// {
+			// 	if (channel->removeClient(*i))
+			// 		client->addOutBuffer(std::string("User " + *i + " removed from channel " + channel->getName() + "\r\n"));
+			// 	else
+			// 		client->addOutBuffer(std::string("441 " + client->getNickName() + " " + *i + " " + channel->getName() + " :They aren't on that channel\r\n"));
+			// }
 		}
 		else
 			client->addOutBuffer(std::string(ERR_OPNEEDED));
