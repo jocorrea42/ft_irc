@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/01 16:15:59 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/02 10:16:57 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 					if (modeChar == '+' || modeChar == '-')
 						setMode = (modeChar == '+');
 					else
-					{
 						switch (modeChar)
 						{
 						case 'i':
@@ -56,7 +55,7 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 							break;
 						case 'k':
 							if (index < params.size())
-								channel->setPassword(setMode ? params[index++] : ""); // si el mode es + agrega el siguiente parametro como pass
+								channel->setPassword(setMode ? params[index++] : "");
 							else
 							{
 								client->addOutBuffer(std::string("461 * " + client->getNickName() + " MODE :Not enough parameters\r\n"));
@@ -72,21 +71,14 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 								Client *target = getClientNick(nickname);
 								if (target)
 								{
-									if (setMode)
-										channel->addAdmin(target);
-									else
-										channel->removeAdmin(target->getNickName());
+									(setMode) ? channel->addAdmin(target) : channel->removeAdmin(target->getNickName());
 									_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " MODE " + params[0] + " " + (setMode ? "+o" : "-o") + " " + nickname + "\r\n"), -1);
 								}
 								else
-								{
 									client->addOutBuffer(std::string("401 " + client->getNickName() + " " + nickname + " :No such nick\r\n"));
-								}
 							}
 							else
-							{
 								client->addOutBuffer(std::string("461 " + client->getNickName() + " MODE :Not enough parameters\r\n"));
-							}
 							break;
 						case 'l':
 							if (setMode && index < params.size())
@@ -106,7 +98,6 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 							client->addOutBuffer(std::string("472 " + client->getNickName() + " " + std::string(1, modeChar) + " :is unknown mode char to me\r\n"));
 							break;
 						}
-					}
 				}
 			}
 		}
@@ -120,26 +111,14 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 void Server::_cmdTopic(Client *client, const std::vector<std::string> &params)
 {
 	if (params.size() < 1)
-	{
-		client->addOutBuffer("461 " + client->getNickName() + " INVITE :Not enough parameters\r\n");
-		return;
-	}
-	if (Channel *channel = getChannel(params[0]))
+		client->addOutBuffer(std::string(ERR_PARAM461));
+	else if (Channel *channel = getChannel(params[0]))
 	{
 		if (!channel->isClient(client))
-		{
-			client->addOutBuffer("442 * " + params[0] + " :You're not on that channel\r\n");
-			return;
-		}
-		if (params.size() == 1)
-		{
-			if (channel->getTopic() == std::string(""))
-				client->addOutBuffer("331 " + params[0] + " :No topic is set\r\n");
-			else
-				client->addOutBuffer("332 " + params[0] + " :" + channel->getTopic() + "\r\n");
-			return;
-		}
-		if (!channel->isTopicLocked() || channel->isAdmin(client->getNickName()))
+			client->addOutBuffer(std::string(ERR_CHANN422));
+		else if (params.size() == 1)
+			(channel->getTopic() == std::string("")) ? client->addOutBuffer(std::string(ERR_TOPIC331)) : client->addOutBuffer(std::string(MSG_TOPIC332));
+		else if (!channel->isTopicLocked() || channel->isAdmin(client->getNickName()))
 		{
 			channel->setTopic(params[1]);
 			_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " TOPIC " + params[0] + " :" + channel->getTopic() + "\r\n"), -1);
@@ -154,11 +133,8 @@ void Server::_cmdTopic(Client *client, const std::vector<std::string> &params)
 void Server::_cmdInvite(Client *client, std::vector<std::string> params)
 {
 	if (params.size() < 2)
-	{
-		client->addOutBuffer(std::string("461 " + client->getNickName() + " INVITE :Not enough parameters\r\n"));
-		return;
-	}
-	if (Channel *tChannel = getChannel(params[1]))
+		client->addOutBuffer(std::string(ERR_PARAM461));
+	else if (Channel *tChannel = getChannel(params[1]))
 	{
 		if (tChannel->isClient(client))
 		{
@@ -166,23 +142,20 @@ void Server::_cmdInvite(Client *client, std::vector<std::string> params)
 			{
 				Client *target = getClientNick(params[0]);
 				if (!target)
+					client->addOutBuffer(std::string(ERR_NICKN401));
+				else if (tChannel->isClient(target))
+					client->addOutBuffer(std::string(ERR_INCHA443));
+				else
 				{
-					client->addOutBuffer(std::string("401 " + params[1] + " :No such nick/channel: " + params[0] + "\r\n"));
-					return;
+					tChannel->invite(target->getNickName());
+					client->addOutBuffer(std::string("341 " + params[1] + " " + params[0] + "\r\n"));
 				}
-				if (tChannel->isClient(target))
-				{
-					client->addOutBuffer(std::string("443 " + params[0] + " " + params[1] + " :is already on channel\r\n"));
-					return;
-				}
-				tChannel->invite(target->getNickName());
-				client->addOutBuffer(std::string("341 " + params[1] + " " + params[0] + "\r\n"));
 			}
 			else
 				client->addOutBuffer(std::string(ERR_OPNEEDED));
 		}
 		else
-			client->addOutBuffer(std::string("442 " + client->getNickName() + " :You're not on that channel\r\n"));
+			client->addOutBuffer(std::string(ERR_CHANN422));
 	}
 	else
 		client->addOutBuffer(std::string(ERR_NOCHANEL));
@@ -227,7 +200,7 @@ void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 		keys = _splitStr(params[1], ',');
 	for (size_t i = 0; i < channels.size(); ++i)
 	{
-		const std::string& channelName = channels[i];
+		const std::string &channelName = channels[i];
 		std::string key = i < keys.size() ? keys[i] : "";
 		if (!getChannel(channelName))
 		{

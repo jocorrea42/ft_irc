@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/08/31 17:55:11 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/02 10:20:51 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,14 @@
 
 # include "Client.hpp"
 
-# define ERR_OPNEEDED "482 " + client->getNickName() + " :You're not channel operator\r\n"
+# define ERR_OPNEEDED "482 * " + client->getNickName() + " :You're not channel operator\r\n"
 # define ERR_NOCHANEL "403 " + client->getNickName() + params[0] + ":No such channel\r\n"
+# define ERR_PARAM461 "461 " + client->getNickName() + " INVITE :Not enough parameters\r\n"
+# define ERR_CHANN422 "442 * " + params[0] + " :You're not on that channel\r\n"
+# define ERR_TOPIC331 "331 " + params[0] + " :No topic is set\r\n"
+# define ERR_NICKN401 "401 " + params[1] + " :No such nick/channel: " + params[0] + "\r\n"
+# define ERR_INCHA443 "443 " + params[0] + " " + params[1] + " :is already on channel\r\n"
+# define MSG_TOPIC332 "332 " + params[0] + " :" + channel->getTopic() + "\r\n"
 
 class Client;
 
