@@ -1,9 +1,15 @@
 NAME		=	ircserv
-CPPFLAGS	=	-I $(INC_DIR) -Wall -Wextra -Werror -std=c++98 -MMD -fsanitize=address
+CPPFLAGS	=	-I $(INC_DIR) -Wall -Wextra -Werror -std=c++98 -MMD #-fsanitize=address
 SRC_DIR		=	src/
 INC_DIR		=	./include/
 OBJ_DIR		=	obj/
-SRC			=	$(wildcard $(SRC_DIR)*.cpp)
+SRC			=	$(SRC_DIR)Channel.cpp \
+				$(SRC_DIR)Client.cpp \
+				$(SRC_DIR)Command.cpp \
+				$(SRC_DIR)LoginCommand.cpp \
+				$(SRC_DIR)main.cpp \
+				$(SRC_DIR)Server.cpp \
+				$(SRC_DIR)Utils.cpp
 OBJ			=	$(patsubst $(SRC_DIR)%.cpp,$(OBJ_DIR)%.o,$(SRC))
 DEP			=	$(patsubst $(SRC_DIR)%.cpp,$(OBJ_DIR)%.d,$(SRC))
 CC			=	c++

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/08/31 18:01:19 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/02 10:42:14 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,7 +156,7 @@ void Channel::setTopic(const std::string &newTopic)
 	_topic = newTopic;
 }
 
-std::string			Channel::getMode()
+std::string Channel::getMode()
 {
 	std::string mode = "+";
 	if (_invOnly)

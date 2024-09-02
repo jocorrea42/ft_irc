@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:25:16 by fili              #+#    #+#             */
-/*   Updated: 2024/09/01 15:01:48 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/02 10:41:52 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,11 +72,11 @@ int		Client::receiveMessage()
 	ssize_t bytes;
 
 	while (1)
-	{   //-> buffer for the received data
+	{
 		memset(&buff, 0, sizeof(buff));
-		bytes = recv(_fd, buff, sizeof(buff) - 1, 0); //-> receive the data
+		bytes = recv(_fd, buff, sizeof(buff) - 1, 0);
 		if (bytes <= 0)
-		{ //-> check if the client disconnected
+		{
 			if (errno == EWOULDBLOCK || errno == EAGAIN)
 				break;
 			else
