@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/09/02 10:20:51 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/02 10:26:02 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,6 @@ public:
     void removeAdmin(std::string nick);
 	void removeInvited(std::string const &nick);
 	void setTopic(const std::string &newTopic);
-    void giveTakeAdmin(int fd, const std::string &nick, Client *client);
 	std::vector<std::string>	getClients(){ return (this->_clients);}
 	std::string			getMode();
 
