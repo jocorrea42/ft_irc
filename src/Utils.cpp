@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/01 15:59:55 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/02 10:39:40 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,13 +79,13 @@ Server &Server::operator=(Server const &other)
 void Server::_CloseFds()
 {
 	for (size_t i = 0; i < _clients.size(); i++)
-	{ //-> close all the clients
+	{
 		std::cout << "Client <" << _clients[i].getFd() << "> Disconnected" << std::endl;
 		close(_clients[i].getFd());
 		_clients.erase(_clients.begin() + i);
 	}
 	if (_fd != -1)
-	{ //-> close the server socket
+	{
 		std::cout << "Server <" << _fd << "> Disconnected" << std::endl;
 		close(_fd);
 	}
@@ -95,8 +95,8 @@ void Server::_CloseFds()
 bool Server::_Signal = false;
 void Server::SignalHandler(int signum)
 {
-	(void)signum;	// std::cout << std::endl << "Signal Received!" << std::endl;
-	_Signal = true; //-> set the static boolean to true to stop the server
+	(void)signum;
+	_Signal = true;
 }
 
 Server::Server()
@@ -157,8 +157,8 @@ void Server::printParam(std::vector<std::string> params)
 }
 
 void Server::_ClearClient(int fd)
-{											 //-> clear the clients
-	for (size_t i = 0; i < _fds.size(); i++) //-> remove the client from the pollfd
+{
+	for (size_t i = 0; i < _fds.size(); i++)
 		if (_fds[i].fd == fd)
 		{
 			_fds.erase(_fds.begin() + i);
@@ -166,7 +166,7 @@ void Server::_ClearClient(int fd)
 			close(fd);
 			break;
 		}
-	for (size_t i = 0; i < _clients.size(); i++) //-> remove the client from the vector of clients
+	for (size_t i = 0; i < _clients.size(); i++)
 		if (_clients[i].getFd() == fd)
 		{
 			_clients.erase(_clients.begin() + i);
@@ -212,11 +212,7 @@ std::vector<std::string> Server::_splitStr(const std::string& str, char delimite
 	std::vector<std::string> tokens;
 	std::istringstream iss(str);
 	std::string token;
-
 	while (std::getline(iss, token, delimiter))
-	{
 		tokens.push_back(token);
-	}
-
 	return tokens;
 }

@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:30:22 by fili              #+#    #+#             */
-/*   Updated: 2024/06/26 02:06:56 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/02 10:36:18 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,8 @@ int main(int argc, char **argv)
         Server ircserv(atoi(argv[1]), std::string(argv[2]));
         try
         {
-            signal(SIGINT, ircserv.SignalHandler);  //-> catch the signal (ctrl + c)
-            signal(SIGQUIT, ircserv.SignalHandler); //-> catch the signal (ctrl + \)
+            signal(SIGINT, ircserv.SignalHandler);
+            signal(SIGQUIT, ircserv.SignalHandler);
             ircserv.ServerStart();
         }
         catch (const std::exception &e)

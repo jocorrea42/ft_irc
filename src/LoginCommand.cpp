@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   LoginCommand.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 21:25:22 by fili              #+#    #+#             */
-/*   Updated: 2024/09/01 15:49:56 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/02 10:36:10 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ void Server::_passAutentication(Client *client, const std::vector<std::string> &
 }
 
 bool Server::_nickNameOk(const std::string &nickname)
-{ // vemos que se cumpla el protocolo
+{
 	return ((nickname.empty() || nickname.length() > 9 || !std::isalpha(nickname[0])));
 }
 
@@ -69,13 +69,13 @@ void Server::_userAutentication(Client *client, const std::vector<std::string> &
 		std::string nickname = params[0];
 		std::string username = params[1];
 		std::string servername = params[2];
-		std::string realname = params[3]; // Ignore hostname and servername when USER comes from a directly connected client.
+		std::string realname = params[3];
 		client->setUser(username);
 		client->setNickName(nickname);
 		client->setName(realname);
-		client->addOutBuffer(std::string("001 " + nickname + " :Welcome to the Internet Relay Network " + nickname + "!" + username + "@" + realname + "\r\n")); // Send RPL_YOURHOST: 002
-		client->addOutBuffer(std::string("002 " + nickname + " :Your host is " + servername + ", running version 1.0\r\n"));									 // Send RPL_CREATED: 003
-		client->addOutBuffer(std::string("003 " + nickname + " :This server was created for apodader and jocorrea \"THE PACHANGA TEAM\"" + " \r\n"));			 // Send RPL_MYINFO: 004
+		client->addOutBuffer(std::string("001 " + nickname + " :Welcome to the Internet Relay Network " + nickname + "!" + username + "@" + realname + "\r\n"));
+		client->addOutBuffer(std::string("002 " + nickname + " :Your host is " + servername + ", running version 1.0\r\n"));
+		client->addOutBuffer(std::string("003 " + nickname + " :This server was created for apodader and jocorrea \"THE PACHANGA TEAM\"" + " \r\n"));
 		client->addOutBuffer(std::string("004 " + nickname + " " + servername + " 1.0 \r\n"));
 		client->nextStatus();
 		std::vector<std::string> pm;
@@ -96,7 +96,7 @@ void Server::_cmdCap(Client *client, const std::vector<std::string> &params)
 {
 	if (params.size() && (params[0] == "LS" || params[0] == "END"))
 	{
-		if (params[0] == "LS") // si es END no hace nada
+		if (params[0] == "LS")
 			client->addOutBuffer(std::string("CAP * LS : \r\n"));
 	}
 	else
