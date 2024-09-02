@@ -3,14 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2024/09/02 11:23:03 by fili             ###   ########.fr       */
-=======
-/*   Updated: 2024/09/02 11:01:26 by apodader         ###   ########.fr       */
->>>>>>> aea66e82d0512c5ce74fb4ae79850a3dc952350a
+/*   Updated: 2024/09/02 11:40:02 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +18,9 @@ void Server::_cmdMode(Client *client, const std::vector<std::string> &params)
 		client->addOutBuffer(std::string("451 * :You have not registered \r\n"));
 	else if (params.size() < 1)
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " MODE :Not enough parameters\r\n"));
-	else if (params[0][0] == '#' || params[0][0] == '&')
+	else if (params[0][0] == '#' || params[0][0] == '&') // channel mode
 		_cmdChannelMode(client, params);
-	else
+	else // user mode
 		client->addOutBuffer(std::string("502 " + client->getNickName() + " :Cannot change mode for other users\r\n"));
 }
 
@@ -36,7 +32,7 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 			client->addOutBuffer(std::string("324 " + client->getNickName() + " " + params[0] + " " + channel->getMode() + "\r\n"));
 		else if (channel->isAdmin(client->getNickName()))
 		{
-			size_t index = 1;
+			size_t index = 1; // index params
 			bool setMode = true;
 			while (index < params.size())
 			{
@@ -169,23 +165,6 @@ void Server::_cmdKick(Client *client, std::vector<std::string> params)
 {
 	if (params.size() < 2)
 		client->addOutBuffer(std::string(ERR_PARAM461));
-<<<<<<< HEAD
-=======
-	else if (Channel *channel = getChannel(params[0]))
-	{
-		if (channel->isAdmin(client->getNickName()))
-		{
-			std::string reason;
-			(params.size() >= 3) ? reason = "No reason specified" : reason = params[2];
-			if (channel->removeClient(client->getNickName()))
-					_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " KICK " + params[0] + " " + params[1] + " :" + reason + "\r\n"), -1);
-			else
-				client->addOutBuffer(std::string("441 " + client->getNickName() + " " + params[1] + " " + params[0] + " :They aren't on that channel\r\n"));
-		}
-		else
-			client->addOutBuffer(std::string(ERR_OPNEEDED));
-	}
->>>>>>> aea66e82d0512c5ce74fb4ae79850a3dc952350a
 	else
 	{
 		std::vector<std::string> channels = _splitStr(params[0], ',');
@@ -201,12 +180,11 @@ void Server::_cmdKick(Client *client, std::vector<std::string> params)
 			{
 				std::cout << channels[i] << ", " << user[i] << ", " << reason << std::endl;
 				if (channel->isAdmin(client->getNickName()))
-				{	
+				{
 					if (channel->removeClient(user[i]))
 						_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " KICK " + channels[i] + " " + user[i] + " :" + reason + "\r\n"), -1);
 					else
 						client->addOutBuffer(std::string("441 " + client->getNickName() + " " + user[i] + " " + channels[i] + " :They aren't on that channel\r\n"));
-	
 				}
 				else
 					client->addOutBuffer(std::string(ERR_OPNEEDED));
@@ -265,10 +243,7 @@ void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 
 void Server::addChannel(Client *client, const std::vector<std::string> &params)
 {
-	if (params.size() == 1)
-		_channels.push_back(Channel(params[0], client));
-	else
-		_channels.push_back(Channel(params[0], params[1], client));
+	(params.size() == 1) ? _channels.push_back(Channel(params[0], client)) : _channels.push_back(Channel(params[0], params[1], client));
 }
 
 void Server::_broadcastAllServer(const std::string &message)
@@ -280,42 +255,40 @@ void Server::_broadcastAllServer(const std::string &message)
 void Server::_cmdPrivmsg(Client *client, std::vector<std::string> params)
 {
 	if (client->getStatus() != REG)
-	{
 		client->addOutBuffer(std::string("451 * :You have not registered \r\n"));
-		return;
-	}
-	if (params.size() < 2)
-	{
+	else if (params.size() < 2)
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " PRIVMSG :Not enough parameters \r\n"));
-		return;
-	}
-	std::vector<std::string> obj;
-	std::istringstream iss(params[0]);
-	std::string token;
-	while (std::getline(iss, token, ','))
-		obj.push_back(token);
-	for (size_t i = 0; i < obj.size(); i++)
+	else
 	{
-		std::string name = obj[i];
-		Client *cli = getClientNick(name);
-		if (name[0] == '#')
+		std::vector<std::string> obj;
+		std::istringstream iss(params[0]);
+		std::string token;
+		while (std::getline(iss, token, ','))
+			obj.push_back(token);
+		for (size_t i = 0; i < obj.size(); i++)
 		{
-			if (Channel *channel = getChannel(name))
+			std::string name = obj[i];
+			Client *cli = getClientNick(name);
+			if (name[0] == '#')
 			{
-				if (channel->isClient(client))
-					_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + " \r\n"), client->getFd());
+				if (Channel *channel = getChannel(name))
+				{
+					if (channel->isClient(client))
+						_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + " \r\n"), clifd);
+					else
+						client->addOutBuffer(std::string("404 " + client->getNickName() + " " + name + " :Cannot send to channel \r\n"));
+				}
 				else
-					client->addOutBuffer(std::string("404 " + client->getNickName() + " " + name + " :Cannot send to channel \r\n"));
+					client->addOutBuffer(std::string("403 " + client->getNickName() + " " + name + " :No such channel\r\n"));
 			}
 			else
-				client->addOutBuffer(std::string("403 " + client->getNickName() + " " + name + " :No such channel\r\n"));
-		}
-		else
-		{
-			if (cli == NULL)
-				client->addOutBuffer(std::string("401 " + client->getNickName() + " " + name + " :No such nick \r\n"));
-			else
-				cli->addOutBuffer(std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + "\r\n"));
+			{
+				if (cli == NULL)
+
+					client->addOutBuffer(std::string("401 " + client->getNickName() + " " + name + " :No such nick \r\n"));
+				else
+					cli->addOutBuffer(std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + "\r\n"));
+			}
 		}
 	}
 }
