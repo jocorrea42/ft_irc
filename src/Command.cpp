@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/02 11:40:02 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/02 11:43:52 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -274,7 +274,7 @@ void Server::_cmdPrivmsg(Client *client, std::vector<std::string> params)
 				if (Channel *channel = getChannel(name))
 				{
 					if (channel->isClient(client))
-						_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + " \r\n"), clifd);
+						_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + " \r\n"), client->getFd());
 					else
 						client->addOutBuffer(std::string("404 " + client->getNickName() + " " + name + " :Cannot send to channel \r\n"));
 				}
