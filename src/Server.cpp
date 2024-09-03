@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/03 11:05:54 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/03 11:06:58 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,6 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 	}
 	else
 	{
-		//_clients[0].sendOwnMessage();
 		addPollfd(inConectionFd); // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
 		std::cout << "CLIENT <" << inConectionFd << " con ip: " << _clients[_clients.size() - 1].getIp() << "> IS CONNECTED!!!" << std::endl;
 	}
