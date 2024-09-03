@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/03 11:00:43 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/03 11:05:54 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ bool Server::_addClient(int inConectionFd, struct sockaddr_in clientadd)
 	size_t clilen = _clients.size();
 	for (size_t i = 0; i < clilen; i++)
 		if (_clients[i].getIp() == inet_ntoa(clientadd.sin_addr))
-			return false;
+			return (false);
 	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
 	return (true);
 }
@@ -89,6 +89,7 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 	if (!_addClient(inConectionFd, clientadd)) //-> add the client to the vector of clients
 	{
 		std::cout << "CLIENT exist\n";
+		send(inConectionFd, "ya estas conectado desde este terminal adiosssssss", 50, 0);
 		close(inConectionFd);
 	}
 	else
