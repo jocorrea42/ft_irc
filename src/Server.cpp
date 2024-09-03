@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/03 11:06:58 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/03 11:09:37 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ bool Server::_addClient(int inConectionFd, struct sockaddr_in clientadd)
 
 void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 {
-	std::cout << "NEW CLIENT CONNECTION !!!!\n";
+	std::cout << "NEW CLIENT TRYING TO CONNECT!!!!\n";
 	int inConectionFd;
 	struct sockaddr_in clientadd; // lo mismo pero para un nuevo cliente conectado
 	socklen_t len = sizeof(clientadd);
@@ -88,7 +88,7 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
 	if (!_addClient(inConectionFd, clientadd)) //-> add the client to the vector of clients
 	{
-		std::cout << "CLIENT exist\n";
+		std::cout << "CLIENT EXISTs\n";
 		send(inConectionFd, "ya estas conectado desde este terminal adiosssssss", 50, 0);
 		close(inConectionFd);
 	}
