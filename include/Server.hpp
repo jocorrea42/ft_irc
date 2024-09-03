@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/09/01 15:49:52 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/03 10:39:30 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,7 @@ private:
 	void _disconnectClient(Client *client, std::string msg);
 	void _broadcastClientChannel(Channel *channel, std::string msg, int fd);
 	std::vector<std::string> _splitStr(const std::string &str, char delimiter);
+	bool _addClient(int inConectionFd, struct sockaddr_in  clientadd);
 
 public:
 	Server(); //-> default constructor

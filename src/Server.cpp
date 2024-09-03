@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/02 10:36:59 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/03 10:53:58 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,16 @@ void Server::ServerStart()
 	_CloseFds();
 }
 
+bool Server::_addClient(int inConectionFd, struct sockaddr_in  clientadd)
+{
+	size_t clilen = _clients.size();
+	for (size_t i = 0; i < clilen; i++)
+		if (_clients[i].getIp() == inet_ntoa(clientadd.sin_addr))
+			return false;
+	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
+	return (true);
+}
+
 void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 {
 	std::cout << "NEW CLIENT CONNECTION !!!!\n";
@@ -76,10 +86,16 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 		throw(std::runtime_error("faild accept client"));
 	if (fcntl(inConectionFd, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
-	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
-	_clients[0].sendOwnMessage();
+	if (!_addClient(inConectionFd, clientadd)) //-> add the client to the vector of clients
+	{
+		std::cout << "CLIENT exist\n";
+		close(inConectionFd);
+	}else
+	{
+	//_clients[0].sendOwnMessage();
 	addPollfd(inConectionFd); // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
-	std::cout << "CLIENT <" << inConectionFd << "> IS CONNECTED!!!" << std::endl;
+	std::cout << "CLIENT <" << inConectionFd << " con ip: " << _clients[_clients.size() -1].getIp() << "> IS CONNECTED!!!" << std::endl;
+	}
 }
 
 void Server::ReceiveNewData(int fd)
