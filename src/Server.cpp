@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/03 10:53:58 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/03 11:00:43 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ void Server::ServerStart()
 	_CloseFds();
 }
 
-bool Server::_addClient(int inConectionFd, struct sockaddr_in  clientadd)
+bool Server::_addClient(int inConectionFd, struct sockaddr_in clientadd)
 {
 	size_t clilen = _clients.size();
 	for (size_t i = 0; i < clilen; i++)
@@ -90,11 +90,12 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 	{
 		std::cout << "CLIENT exist\n";
 		close(inConectionFd);
-	}else
+	}
+	else
 	{
-	//_clients[0].sendOwnMessage();
-	addPollfd(inConectionFd); // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
-	std::cout << "CLIENT <" << inConectionFd << " con ip: " << _clients[_clients.size() -1].getIp() << "> IS CONNECTED!!!" << std::endl;
+		//_clients[0].sendOwnMessage();
+		addPollfd(inConectionFd); // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
+		std::cout << "CLIENT <" << inConectionFd << " con ip: " << _clients[_clients.size() - 1].getIp() << "> IS CONNECTED!!!" << std::endl;
 	}
 }
 
