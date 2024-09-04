@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   LoginCommand.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 21:25:22 by fili              #+#    #+#             */
-/*   Updated: 2024/09/02 10:36:10 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/04 12:29:24 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ void Server::_userAutentication(Client *client, const std::vector<std::string> &
 		client->addOutBuffer(std::string("004 " + nickname + " " + servername + " 1.0 \r\n"));
 		client->nextStatus();
 		std::vector<std::string> pm;
-		pm.push_back("#" + params[0]);
+		pm.push_back(params[0]);
 		_cmdJoin(client, pm);
 	}
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:25:16 by fili              #+#    #+#             */
-/*   Updated: 2024/09/02 10:41:52 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/04 12:19:21 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,24 +68,28 @@ void	Client::cleanOutBuffer()
 
 int		Client::receiveMessage()
 {
-	char buff[1024];
+	char buff[MAX_BUFFER_LEN];
 	ssize_t bytes;
 
 	while (1)
 	{
-		memset(&buff, 0, sizeof(buff));
-		bytes = recv(_fd, buff, sizeof(buff) - 1, 0);
+		//memset(&buff, 0, MAX_BUFFER_LEN);
+		bytes = recv(_fd, buff, MAX_BUFFER_LEN - 1, 0);
 		if (bytes <= 0)
 		{
 			if (errno == EWOULDBLOCK || errno == EAGAIN)
 				break;
 			else
-			{
-				std::cout << "Client <" << _fd << "> Disconnected" << std::endl;
 				return 0;
-			}
 		}
+		buff[bytes] = 0;
 		this->addInBuffer(buff);
 	}
 	return (1);
+}
+
+bool Client::msgLon()
+{
+	std::size_t index = _inBuffer.find(std::string("\r\n"));
+	return ((index != std::string::npos)? (index >= (MAX_BUFFER_LEN - 1)) : ( _inBuffer.length() > (MAX_BUFFER_LEN - 2)));
 }

@@ -6,13 +6,14 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:04:59 by fili              #+#    #+#             */
-/*   Updated: 2024/09/01 15:00:57 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/04 12:15:16 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 # include "Server.hpp"
+# define MAX_BUFFER_LEN 512
 
 enum Status { PASS, NICK, USER, REG };
 
@@ -57,6 +58,7 @@ public:
 	std::string	getNickName(){ return (this->_nickName);}
 	std::string getIp(){ return this->_ipAdd; }
 
+	bool		msgLon();
 	void		nextStatus();
 	void		cleanInBuffer();
 	void		cleanOutBuffer();
