@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/09/05 19:17:34 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/06 00:55:43 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@
 #include <sstream>
 #include <cstdlib>
 #include <cerrno>
+#include <ctime>
+#include <iomanip>
 
 class Client;
 class Channel;
@@ -69,7 +71,9 @@ private:
 	void _broadcastClientChannel(Channel *channel, std::string msg, int fd);
 	std::vector<std::string> _splitStr(const std::string &str, char delimiter);
 	bool _addClient(int inConectionFd, struct sockaddr_in  clientadd);
-	void	_bot(Client *client, std::vector<std::string> params);
+	void _bot(Client *client, std::vector<std::string> params);
+	void _botHour(Client *client, std::vector<std::string> params);	
+	void _botRandom(Client *client, std::vector<std::string> params);
 public:
 	Server(); //-> default constructor
 	Server(int port, std::string password);

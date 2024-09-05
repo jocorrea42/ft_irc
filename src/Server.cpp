@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/05 17:25:39 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/06 00:33:14 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,10 +67,10 @@ void Server::ServerStart()
 
 bool Server::_addClient(int inConectionFd, struct sockaddr_in clientadd)
 {
-	size_t clilen = _clients.size();
-	for (size_t i = 0; i < clilen; i++)
-		if (_clients[i].getIp() == inet_ntoa(clientadd.sin_addr))
-			return (false);
+	// size_t clilen = _clients.size();
+	// for (size_t i = 0; i < clilen; i++)
+	// 	if (_clients[i].getIp() == inet_ntoa(clientadd.sin_addr))
+	// 		return (false);
 	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
 	return (true);
 }
@@ -107,7 +107,7 @@ void Server::ReceiveNewData(int fd)
 	std::string token;
 	Client *cli = getClient(fd);
 
-	if (!cli->receiveMessage() )//|| cli->getInBuffer().find("\r\n") == std::string::npos)
+	if (!cli->receiveMessage() )
 		_disconnectClient(cli, std::string("Client disconected " + cli->getInBuffer())); //-> clear the client
 	else if (!cli->msgLon())
 	{

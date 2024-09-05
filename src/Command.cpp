@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/05 19:37:45 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/06 00:58:55 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -312,7 +312,6 @@ void	Server::_bot(Client *client, std::vector<std::string> params)
 		"RANDOM",
 		};
 
-	// change bot_cmd into caps letter
 	for (size_t i = 0; i < params[1].size(); i++)
 		params[1][i] = std::toupper(params[1][i]);
 	
@@ -323,16 +322,51 @@ void	Server::_bot(Client *client, std::vector<std::string> params)
 			break;
 		index++;
 	}
-	std::cout << "ESCRIBIOSSSSSS\n" << index + 1  << params[1] << validCmds[0] << std::endl;
 	switch (index + 1)
 	{
-		case 1: client->addOutBuffer(": " + client->getNickName()+ " PRIVMSG Bot" + " :Ask me 'HOUR', 'LOVE' or 'RANDOM'\r\n"); break;
-		// case 2: botHour(server, client_fd, it_client, bot); break;
-		// case 3: addToClientBuffer(server, client_fd, RPL_PRIVMSG(bot, bot, it_client->second.getNickname(), "dyoula, msanjuan, tmanolis and myself send you love through this terminal <3")); break;
-		// case 4: botRandom(server, client_fd, it_client, bot); break;
-		// default:
-		// 	addToClientBuffer(server, client_fd, RPL_PRIVMSG(bot, bot, it_client->second.getNickname(), "Invalid request, ask 'HELP' for more infos"));
+		case 1: client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + " :Ask me 'HOUR', 'LOVE' or 'RANDOM'\r\n"); break;
+		case 2: _botHour(client, params); break;
+	    case 3: client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + " :send you love through this terminal <3\r\n"); break;
+		case 4: _botRandom(client, params); break;
+		default:
+		 	client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + "Invalid request, ask 'HELP' for more infos");
 	}
+}
+void Server::_botRandom(Client *client, std::vector<std::string> params)
+{
+	(void)params;
+	srand(time(NULL)); // initializes the random number generator with a seed value based on the current time
+    int index = rand() % 10 + 1; // number between 1 and 10
+	
+	std::string str;
+	switch (index)
+	{
+		case 1: str = "Wearing headphones for just an hour could increase the bacteria in your ear by 700 times."; break;
+		case 2: str = "Google images was literally created after Jennifer Lopez wore that infamous dress at the 2000 Grammys"; break;
+		case 3: str = "Los Angeles' full name is 'El Pueblo de Nuestra Senora la Reina de los Angeles de Porciuncula'"; break;
+		case 4: str = "Tigers have striped skin, not just striped fur."; break;
+		case 5: str = "Like fingerprints, everyone's tongue print is different."; break;
+		case 6: str = "Cat urine glows under a black-light."; break;
+		case 7: str = "A shrimp's heart is in its head."; break;
+		case 8: str = "The Spice Girls were originally a band called Touch."; break;
+		case 9: str = "The unicorn is the national animal of Scotland"; break;
+		case 10: str = "In 2014, there was a Tinder match in Antarctica"; break;
+	}
+	client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + str + "\r\n");
+}
+
+void Server::_botHour(Client *client, std::vector<std::string> params)
+{
+	(void)params;
+	std::stringstream ss;
+    std::time_t t = std::time(NULL);
+    std::tm* tm_local = std::localtime(&t);
+
+    ss << "Current local time: " << tm_local->tm_hour << ":" 
+       << tm_local->tm_min << ":" << tm_local->tm_sec;
+    
+    std::string time = ss.str();
+	client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + time + "'\r\n");
 }
 // void Server::_cmdDcc(Client *client, std::vector<std::string> params)
 // {
