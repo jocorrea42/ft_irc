@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/02 10:39:40 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/05 17:39:22 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,30 +184,44 @@ void Server::addPollfd(int fd)
 	_polls_size++;
 }
 
-void	Server::_broadcastClientChannel(Channel *channel, std::string msg, int fd)
+void Server::_broadcastClientChannel(Channel *channel, std::string msg, int fd)
 {
 	std::vector<std::string> clients = channel->getClients();
 
-			clients = channel->getClients();
-			Client *client;
-			for (size_t j = 0; j < clients.size(); j++)
-			{
-				client = getClient(clients[j]);
-				if (client && client->getFd() != fd)
-					client->addOutBuffer(msg);
-			}
+	clients = channel->getClients();
+	Client *client;
+	for (size_t j = 0; j < clients.size(); j++)
+	{
+		client = getClient(clients[j]);
+		if (client && client->getFd() != fd)
+			client->addOutBuffer(msg);
+	}
 }
 
-
-void Server::_disconnectClient(Client* client, std::string msg)
+void Server::_disconnectClient(Client *client, std::string msg)
 {
-	std::cout << "unexpected client disconnection send msg to " << client->getName() << std::endl;
+	std::cout << "client disconnection send msg to " << client->getName() << ", " << msg << std::endl;
 	std::string quit_msg = ":" + client->getNickName() + "!~" + client->getName() + " QUIT :" + msg + " \r\n";
 	_broadcastAllServer(quit_msg);
+	for (size_t i = 0; i < _channels.size(); i++)
+	{
+		if (_channels[i].isClient(client))
+		{
+			_channels[i].removeClient(client->getNickName());
+			if (_channels[i].getClients().size() == 0)
+				_channels.erase(_channels.begin() + i);
+			else if (_channels[i].hasAdmin() == 0)
+			{	std::cout << "ENTRO AQUIIIIIII asignando  admin en: " << _channels[i].getName() << std::endl;
+				Client *newAdmin = getClientNick(_channels[i].getClients()[0]);
+				_channels[i].addAdmin(newAdmin);
+				newAdmin->addOutBuffer(std::string(_channels[i].getName() + " No admins left connected/you are the new Admin \r\n"));
+			}
+		}
+	}
 	_ClearClient(client->getFd());
 }
 
-std::vector<std::string> Server::_splitStr(const std::string& str, char delimiter)
+std::vector<std::string> Server::_splitStr(const std::string &str, char delimiter)
 {
 	std::vector<std::string> tokens;
 	std::istringstream iss(str);

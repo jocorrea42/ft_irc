@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/09/03 10:39:30 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/05 17:25:18 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ private:
 	void _cmdTopic(Client *client, const std::vector<std::string> &params);
 	void _broadcastAllServer(const std::string &message);
 	void _cmdPrivmsg(Client *client, std::vector<std::string> params);
+	//void _cmdDcc(Client *client, std::vector<std::string> params);
 	void _disconnectClient(Client *client, std::string msg);
 	void _broadcastClientChannel(Channel *channel, std::string msg, int fd);
 	std::vector<std::string> _splitStr(const std::string &str, char delimiter);

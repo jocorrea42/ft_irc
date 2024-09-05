@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:25:16 by fili              #+#    #+#             */
-/*   Updated: 2024/09/04 12:19:21 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/05 15:21:31 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,13 +75,15 @@ int		Client::receiveMessage()
 	{
 		//memset(&buff, 0, MAX_BUFFER_LEN);
 		bytes = recv(_fd, buff, MAX_BUFFER_LEN - 1, 0);
-		if (bytes <= 0)
+		if (bytes == -1)
 		{
-			if (errno == EWOULDBLOCK || errno == EAGAIN)
+			// if (errno == EWOULDBLOCK || errno == EAGAIN)
+			// 	break;
+			// else
 				break;
-			else
-				return 0;
 		}
+		else if (bytes ==0)
+			return (0);
 		buff[bytes] = 0;
 		this->addInBuffer(buff);
 	}

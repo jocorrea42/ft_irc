@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/04 12:46:15 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/05 17:25:39 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,8 @@ void Server::ServerStart()
 		throw(std::runtime_error("listen() failed"));
 	addPollfd(_fd);
 	std::cout << "IRC SERVER <" << _fd << "> I AM ALIVE\nSERVER WAIT FOR CLIENT CONNECTIONS .......\n";
-	while (!(this->_Signal))											 //-> run the server until the signal is received
-	{//pongo el poll con 200 milisegundos																	 // poll(fdsarray, fdsarraysize, time) el time en -1 bloquea hasta que exita evento en el poll
+	while (!(this->_Signal))											  //-> run the server until the signal is received
+	{																	  // pongo el poll con 200 milisegundos																	 // poll(fdsarray, fdsarraysize, time) el time en -1 bloquea hasta que exita evento en el poll
 		if ((poll(&_fds[0], _polls_size, 200) == -1) && _Signal == false) // codigo para ver si ocurrio un evento
 			throw(std::runtime_error("poll() fail, el vento salio mal"));
 		for (int i = 0; i < _polls_size; i++) // miro todos los fds en el poll vector
@@ -107,18 +107,21 @@ void Server::ReceiveNewData(int fd)
 	std::string token;
 	Client *cli = getClient(fd);
 
-	if (!cli->receiveMessage() || cli->getInBuffer().find("\r\n") == std::string::npos)
-		_disconnectClient(cli, std::string("Client disconected")); //-> clear the client
+	if (!cli->receiveMessage() )//|| cli->getInBuffer().find("\r\n") == std::string::npos)
+		_disconnectClient(cli, std::string("Client disconected " + cli->getInBuffer())); //-> clear the client
 	else if (!cli->msgLon())
 	{
-		if (cli->getInBuffer().find(std::string("\r\n")) != std::string::npos)
+		if (cli->getInBuffer().find(std::string("\r\n")) != std::string::npos || cli->getInBuffer().find(std::string("\n")) != std::string::npos)
 		{
+			std::string match = "\n";
 			std::string line = cli->getInBuffer();
 			cli->cleanInBuffer();
 			while (line.size() > 0)
 			{
-				sms = line.substr(0, line.find("\r\n"));
-				line.erase(0, line.find("\r\n") + 2);
+				if (line.find(std::string("\r\n")) != std::string::npos)
+					match = "\r\n";
+				sms = line.substr(0, line.find(match));
+				line.erase(0, line.find(match) + match.length());
 				std::cout << "MESSAGE FROM " << cli->getNickName() << ": " << sms << std::endl;
 				params.clear(); // Extraer parametros y comandos
 				std::istringstream iss(sms);
@@ -137,7 +140,6 @@ void Server::ReceiveNewData(int fd)
 					else
 						params.push_back(token); // el parametro no tiene :
 				} // Remove trailing \r from the last parameter
-				// printParam(params);
 				if (!params.empty() && !params[params.size() - 1].empty() && params[params.size() - 1][params[params.size() - 1].size() - 1] == '\r')
 					params[params.size() - 1].resize(params[params.size() - 1].size() - 1);
 				if (command == std::string("PASS"))
@@ -164,8 +166,13 @@ void Server::ReceiveNewData(int fd)
 					_cmdTopic(cli, params);
 				else if (command == std::string("MODE"))
 					_cmdMode(cli, params);
+				//	else if (command == std::string("DCC"))
+				//	_cmdDcc(cli, params);
 				else
+				{
 					cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));
+					break;
+				}
 			}
 		}
 	}

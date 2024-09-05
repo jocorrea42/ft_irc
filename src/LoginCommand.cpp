@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   LoginCommand.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 21:25:22 by fili              #+#    #+#             */
-/*   Updated: 2024/09/04 12:29:24 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/05 13:41:49 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,5 @@ void Server::_cmdQuit(Client *client, const std::vector<std::string> &params)
 	std::string message = "Client <" + client->getNickName() + "> Quit \r\n";
 	if (params.size() >= 1)
 		message = params[0];
-	client->setOutBuffer(message);
-	close(client->getFd());
 	_disconnectClient(client, message);
 }
