@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/05 17:39:22 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/05 19:43:46 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,7 @@ Server::Server(int port, std::string password) : _port(port), _pass(password)
 	_add.sin_family = AF_INET;			//-> set the address family to ipv4
 	_add.sin_addr.s_addr = INADDR_ANY;	//-> set the address to any local machine address
 	_add.sin_port = htons(this->_port); //-> convert the port to network byte order (big endian)
+	_channels.push_back( Channel("Bot"));
 }
 
 Server::~Server()

@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/09/05 17:58:06 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/05 19:42:43 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,11 @@
 Channel::Channel(){}
 
 Channel::~Channel(){}
-
+Channel::Channel(std::string name): _name(name)
+{
+	_clients.push_back("Bot");
+	_admins.push_back("Bot");
+}
 Channel::Channel(std::string name, Client *client): _name(name), _password("x"), _invOnly(false), _topicLock(false), _limit(0)
 {
 	_clients.push_back((client->getNickName()));

@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/05 18:40:40 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/05 19:37:45 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -290,16 +290,50 @@ void Server::_cmdPrivmsg(Client *client, std::vector<std::string> params)
 			}
 			else
 			{
-				if (cli == NULL)
-
+				
+				if (name == "Bot")
+					_bot(client, params);
+				else if (cli == NULL)
 					client->addOutBuffer(std::string("401 " + client->getNickName() + " " + name + " :No such nick \r\n"));
-				else
+				else 
 					cli->addOutBuffer(std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + "\r\n"));
 			}
 		}
 	}
 }
 
+void	Server::_bot(Client *client, std::vector<std::string> params)
+{
+	std::string bot = "Bot";
+	std::string	validCmds[4] = {
+		"HELP",
+		"HOUR",
+		"LOVE",
+		"RANDOM",
+		};
+
+	// change bot_cmd into caps letter
+	for (size_t i = 0; i < params[1].size(); i++)
+		params[1][i] = std::toupper(params[1][i]);
+	
+	int index = 0;
+	while (index < 4)
+	{
+		if (params[1] == validCmds[index])
+			break;
+		index++;
+	}
+	std::cout << "ESCRIBIOSSSSSS\n" << index + 1  << params[1] << validCmds[0] << std::endl;
+	switch (index + 1)
+	{
+		case 1: client->addOutBuffer(": " + client->getNickName()+ " PRIVMSG Bot" + " :Ask me 'HOUR', 'LOVE' or 'RANDOM'\r\n"); break;
+		// case 2: botHour(server, client_fd, it_client, bot); break;
+		// case 3: addToClientBuffer(server, client_fd, RPL_PRIVMSG(bot, bot, it_client->second.getNickname(), "dyoula, msanjuan, tmanolis and myself send you love through this terminal <3")); break;
+		// case 4: botRandom(server, client_fd, it_client, bot); break;
+		// default:
+		// 	addToClientBuffer(server, client_fd, RPL_PRIVMSG(bot, bot, it_client->second.getNickname(), "Invalid request, ask 'HELP' for more infos"));
+	}
+}
 // void Server::_cmdDcc(Client *client, std::vector<std::string> params)
 // {
 

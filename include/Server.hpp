@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/09/05 17:25:18 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/05 19:17:34 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ private:
 	void _broadcastClientChannel(Channel *channel, std::string msg, int fd);
 	std::vector<std::string> _splitStr(const std::string &str, char delimiter);
 	bool _addClient(int inConectionFd, struct sockaddr_in  clientadd);
-
+	void	_bot(Client *client, std::vector<std::string> params);
 public:
 	Server(); //-> default constructor
 	Server(int port, std::string password);

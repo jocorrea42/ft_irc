@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/09/05 17:20:09 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/05 19:41:52 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ public:
     ~Channel();
     Channel(Channel const &other){*this = other;}
     Channel &operator=(Channel const &other);
+	Channel(std::string name);
     Channel(std::string name, Client *client);
 	Channel(std::string name, std::string password, Client *client);
     void setPassword(std::string password){this->_password = password;}
