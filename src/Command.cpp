@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/06 15:57:44 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/06 17:02:02 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,21 +18,19 @@ void Server::_cmdMode(Client *client, const std::vector<std::string> &params)
 		client->addOutBuffer(std::string("451 * :MODE-You have not registered \r\n"));
 	else if (params.size() < 1)
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " MODE :Not enough parameters\r\n"));
-	//else if (params[0][0] == '#' || params[0][0] == '&') // channel mode
 	_cmdChannelMode(client, params);
-	//else // user mode
-	//	client->addOutBuffer(std::string("502 " + client->getNickName() + " :Cannot change mode for other users\r\n"));
 }
 
 void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 {
+	std::cout << "el parametro 0 es: " << params[0] << std::endl;
 	if (Channel *channel = getChannel(params[0]))
 	{
 		if (params.size() == 1)
 			client->addOutBuffer(std::string("324 " + client->getNickName() + " " + params[0] + " " + channel->getMode() + "\r\n"));
 		else if (channel->isAdmin(client->getNickName()))
 		{
-			size_t index = 1; // index params
+			size_t index = 1;
 			bool setMode = true;
 			while (index < params.size())
 			{
@@ -241,7 +239,7 @@ void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 					channel->removeInvited(client->getNickName());
 					_broadcastClientChannel(channel, std::string(":" + client->getNickName() + "!~" + client->getName() + " JOIN " + channel->getName() + "\r\n"), client->getFd());
 					if (channel->getTopic() == "")
-						client->addOutBuffer("331 * " + client->getNickName() + " " + channel->getName() + " :No topic is set" + "\r\n");
+						client->addOutBuffer("331 " + channel->getName()+ " " + client->getNickName() + " :No topic is set" + "\r\n");
 					else
 						client->addOutBuffer(std::string("332 " + client->getNickName() + " " + channel->getName() + " :" + channel->getTopic() + "\r\n"));
 				}

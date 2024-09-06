@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/06 16:43:43 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/06 16:55:42 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,9 +202,9 @@ void Server::_broadcastClientChannel(Channel *channel, std::string msg, int fd)
 void Server::_disconnectClient(Client *client, std::string msg, int mode)
 {
 	
-	std::cout << "client disconnection send msg to " << client->getName() << ", " << msg << std::endl;
+	//std::cout << "client disconnection send msg to " << client->getName() << ", " << msg << std::endl;
 	std::string quit_msg = ":" + client->getNickName() + "!~" + client->getName() + " QUIT :" + msg + " \r\n";
-	if (mode)
+	if (mode == 1)
 		_broadcastAllServer(quit_msg);
 	else
 	{
