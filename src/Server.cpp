@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/06 00:33:14 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/06 16:47:19 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,20 +59,15 @@ void Server::ServerStart()
 				if (cli->sendOwnMessage())
 					cli->cleanOutBuffer();
 				else
-					_disconnectClient(cli, std::string("unexpected client disconnection send msg to " + cli->getName() + "\n"));
+					_disconnectClient(cli, std::string("unexpected client disconnection send msg to " + cli->getName() + "\n"), 1);
 			}
 	}
 	_CloseFds();
 }
 
-bool Server::_addClient(int inConectionFd, struct sockaddr_in clientadd)
+void Server::_addClient(int inConectionFd, struct sockaddr_in clientadd)
 {
-	// size_t clilen = _clients.size();
-	// for (size_t i = 0; i < clilen; i++)
-	// 	if (_clients[i].getIp() == inet_ntoa(clientadd.sin_addr))
-	// 		return (false);
 	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
-	return (true);
 }
 
 void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
@@ -86,17 +81,8 @@ void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
 		throw(std::runtime_error("faild accept client"));
 	if (fcntl(inConectionFd, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
-	if (!_addClient(inConectionFd, clientadd)) //-> add the client to the vector of clients
-	{
-		std::cout << "CLIENT EXISTs\n";
-		send(inConectionFd, "ya estas conectado desde este terminal adiosssssss", 50, 0);
-		close(inConectionFd);
-	}
-	else
-	{
-		addPollfd(inConectionFd); // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
-		std::cout << "CLIENT <" << inConectionFd << " con ip: " << _clients[_clients.size() - 1].getIp() << "> IS CONNECTED!!!" << std::endl;
-	}
+	_addClient(inConectionFd, clientadd); //-> add the client to the vector of clients
+	addPollfd(inConectionFd);			  // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
 }
 
 void Server::ReceiveNewData(int fd)
@@ -107,8 +93,8 @@ void Server::ReceiveNewData(int fd)
 	std::string token;
 	Client *cli = getClient(fd);
 
-	if (!cli->receiveMessage() )
-		_disconnectClient(cli, std::string("Client disconected " + cli->getInBuffer())); //-> clear the client
+	if (!cli->receiveMessage())
+		_disconnectClient(cli, std::string("Client disconected " + cli->getInBuffer()), 1); //-> clear the client
 	else if (!cli->msgLon())
 	{
 		if (cli->getInBuffer().find(std::string("\r\n")) != std::string::npos || cli->getInBuffer().find(std::string("\n")) != std::string::npos)
@@ -166,6 +152,8 @@ void Server::ReceiveNewData(int fd)
 					_cmdTopic(cli, params);
 				else if (command == std::string("MODE"))
 					_cmdMode(cli, params);
+				else if (command == std::string("WHOIS"))
+					_cmdWho(cli, params);
 				//	else if (command == std::string("DCC"))
 				//	_cmdDcc(cli, params);
 				else

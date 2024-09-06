@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 21:25:22 by fili              #+#    #+#             */
-/*   Updated: 2024/09/05 13:41:49 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/06 16:47:48 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,13 @@
 void Server::_passAutentication(Client *client, const std::vector<std::string> &params)
 {
 	if (client->getStatus() != PASS)
-		client->addOutBuffer(std::string("462 * :" + params[0] + " may not reregister (need PASS state)\r\n"));
+		_disconnectClient(client, std::string("462 * :" + params[0] + " may not reregister (need PASS state)\r\n"), 0);
 	else if (params.size() < 1)
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " PASS :Not enough parameters\r\n"));
 	else if (params[0] != this->_pass)
 		client->addOutBuffer(std::string("464 * :Password " + params[0] + " incorrect " + _pass + "\r\n"));
 	else
-	{
-		std::cout << client->getFd() << ":" << client->getNickName() << ": a ingresado al server correctamente\n";
 		client->nextStatus();
-	}
 }
 
 bool Server::_nickNameOk(const std::string &nickname)
@@ -35,8 +32,8 @@ bool Server::_nickNameOk(const std::string &nickname)
 void Server::_nickAutentication(Client *client, const std::vector<std::string> &params)
 {
 	std::string oldNick = client->getNickName();
-	if (client->getStatus() == PASS)
-		client->addOutBuffer(std::string("451 * :" + params[0] + " may not reregister (need PASS state)\r\n"));
+	if (client->getStatus() != NICK)
+		_disconnectClient(client, std::string("451 * :" + params[0] + " may not reregister (need NICK state)\r\n"), 0);
 	else if (params.size() == 0)
 		client->addOutBuffer(std::string("431 * :No nickname given\r\n"));
 	else if (_nickNameOk(params[0]))
@@ -61,8 +58,8 @@ void Server::_userAutentication(Client *client, const std::vector<std::string> &
 {
 
 	if (client->getStatus() != USER)
-		client->addOutBuffer(std::string("462 * :" + params[0] + " may not reregister (need USER state)\r\n"));
-	if (params.size() < 4)
+		_disconnectClient(client, std::string("462 * :" + params[0] + " may not reregister (need USER state)\r\n"), 0);
+	else if (params.size() < 4)
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " USER :Not enough parameters\r\n"));
 	else
 	{
@@ -71,16 +68,18 @@ void Server::_userAutentication(Client *client, const std::vector<std::string> &
 		std::string servername = params[2];
 		std::string realname = params[3];
 		client->setUser(username);
-		client->setNickName(nickname);
+		if (client->getNickName() == "Client")
+			client->setNickName(nickname);
 		client->setName(realname);
-		client->addOutBuffer(std::string("001 " + nickname + " :Welcome to the Internet Relay Network " + nickname + "!" + username + "@" + realname + "\r\n"));
-		client->addOutBuffer(std::string("002 " + nickname + " :Your host is " + servername + ", running version 1.0\r\n"));
-		client->addOutBuffer(std::string("003 " + nickname + " :This server was created for apodader and jocorrea \"THE PACHANGA TEAM\"" + " \r\n"));
-		client->addOutBuffer(std::string("004 " + nickname + " " + servername + " 1.0 \r\n"));
+		client->addOutBuffer(std::string("001 " + client->getNickName() + " :Welcome to the Internet Relay Network " + client->getNickName() + "!" + username + "@" + realname + "\r\n"));
+		client->addOutBuffer(std::string("002 " + client->getNickName() + " :Your host is " + servername + ", running version 1.0\r\n"));
+		client->addOutBuffer(std::string("003 " + client->getNickName() + " :This server was created for apodader and jocorrea \"THE PACHANGA TEAM\"" + " \r\n"));
+		client->addOutBuffer(std::string("004 " + client->getNickName() + " " + servername + " 1.0 \r\n"));
 		client->nextStatus();
 		std::vector<std::string> pm;
-		pm.push_back(params[0]);
+		pm.push_back(client->getNickName());
 		_cmdJoin(client, pm);
+
 	}
 }
 
@@ -108,5 +107,53 @@ void Server::_cmdQuit(Client *client, const std::vector<std::string> &params)
 	std::string message = "Client <" + client->getNickName() + "> Quit \r\n";
 	if (params.size() >= 1)
 		message = params[0];
-	_disconnectClient(client, message);
+	_disconnectClient(client, message, 1);
+}
+
+void Server::_cmdWho(Client *client, std::vector<std::string> params)
+{
+	if (params.empty())
+	{
+		client->addOutBuffer("461 " + client->getNickName() + " WHO :Not enough parameters\r\n");
+		return;
+	}
+	if (!getChannel(params[0]))
+	{
+		client->addOutBuffer("403 * " + params[0] + " :No such channel\r\n");
+		return;
+	}
+
+	Channel *channel = getChannel(params[0]);
+
+	// Check if the client is in the channel
+	if (!channel->isClient(client))
+	{
+		client->addOutBuffer("442 " + client->getNickName() + " " + params[0] + " :You're not on that channel\r\n");
+		return;
+	}
+
+	// Send the list of users in the channel to the requesting client
+	const std::vector<std::string> clients_in_channel = channel->getClients();
+
+	// Iterate through the clients and send the message to each of them
+	for (std::vector<std::string>::const_iterator it = clients_in_channel.begin(); it != clients_in_channel.end(); ++it)
+	{
+		Client *user_in_channel = getClientNick(*it);
+		std::string user_info = "352 " + client->getNickName() + " " + params[0] + " " + user_in_channel->getName() + " ";
+
+		// Use a placeholder for the hostname, or just omit it
+		user_info += "* ";
+
+		user_info += "Server " + user_in_channel->getNickName() + " ";
+
+		// Check if the user is an operator
+		if (channel->isAdmin(user_in_channel->getNickName()))
+			user_info += "@";
+
+		user_info += " :0 " + user_in_channel->getUser() + "\r\n";
+		client->addOutBuffer(user_info);
+	}
+
+	// Send the end of the WHO list message
+	client->addOutBuffer("315 " + client->getNickName() + " " + params[0] + " :End of /WHO list.\r\n");
 }

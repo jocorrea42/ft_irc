@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/05 19:43:46 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/06 16:43:43 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,11 +199,18 @@ void Server::_broadcastClientChannel(Channel *channel, std::string msg, int fd)
 	}
 }
 
-void Server::_disconnectClient(Client *client, std::string msg)
+void Server::_disconnectClient(Client *client, std::string msg, int mode)
 {
+	
 	std::cout << "client disconnection send msg to " << client->getName() << ", " << msg << std::endl;
 	std::string quit_msg = ":" + client->getNickName() + "!~" + client->getName() + " QUIT :" + msg + " \r\n";
-	_broadcastAllServer(quit_msg);
+	if (mode)
+		_broadcastAllServer(quit_msg);
+	else
+	{
+		client->addOutBuffer(quit_msg);
+		client->sendOwnMessage();
+	}
 	for (size_t i = 0; i < _channels.size(); i++)
 	{
 		if (_channels[i].isClient(client))
@@ -212,7 +219,7 @@ void Server::_disconnectClient(Client *client, std::string msg)
 			if (_channels[i].getClients().size() == 0)
 				_channels.erase(_channels.begin() + i);
 			else if (_channels[i].hasAdmin() == 0)
-			{	std::cout << "ENTRO AQUIIIIIII asignando  admin en: " << _channels[i].getName() << std::endl;
+			{
 				Client *newAdmin = getClientNick(_channels[i].getClients()[0]);
 				_channels[i].addAdmin(newAdmin);
 				newAdmin->addOutBuffer(std::string(_channels[i].getName() + " No admins left connected/you are the new Admin \r\n"));

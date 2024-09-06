@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/06 00:58:55 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/06 15:57:44 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,13 @@
 void Server::_cmdMode(Client *client, const std::vector<std::string> &params)
 {
 	if (client->getStatus() != REG)
-		client->addOutBuffer(std::string("451 * :You have not registered \r\n"));
+		client->addOutBuffer(std::string("451 * :MODE-You have not registered \r\n"));
 	else if (params.size() < 1)
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " MODE :Not enough parameters\r\n"));
-	else if (params[0][0] == '#' || params[0][0] == '&') // channel mode
-		_cmdChannelMode(client, params);
-	else // user mode
-		client->addOutBuffer(std::string("502 " + client->getNickName() + " :Cannot change mode for other users\r\n"));
+	//else if (params[0][0] == '#' || params[0][0] == '&') // channel mode
+	_cmdChannelMode(client, params);
+	//else // user mode
+	//	client->addOutBuffer(std::string("502 " + client->getNickName() + " :Cannot change mode for other users\r\n"));
 }
 
 void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
@@ -57,7 +57,7 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 							if (index < params.size())
 							{
 								if (params[index] != "x")
-								{std::cout << params[i] << " entro aqui!!!!!!\n";
+								{
 									channel->setPassword(setMode ? params[index++] : "x");
 									_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " MODE " + params[0] + " " + (setMode ? "+k" : "-k") + " " + (setMode ? channel->getPassword() : "") + "\r\n"), -1);
 									
@@ -202,7 +202,9 @@ void Server::_cmdKick(Client *client, std::vector<std::string> params)
 
 void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 {
-	if (params.empty())
+	if (client->getStatus() != REG)
+	 	client->addOutBuffer(std::string("451 * :JOIN-You have not registered \r\n"));
+	else if (params.empty())
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " JOIN :Not enough parameters\r\n"));
 	else
 	{
@@ -261,10 +263,12 @@ void Server::_broadcastAllServer(const std::string &message)
 
 void Server::_cmdPrivmsg(Client *client, std::vector<std::string> params)
 {
-	if (client->getStatus() != REG)
-		client->addOutBuffer(std::string("451 * :You have not registered \r\n"));
+	 if (client->getStatus() != REG)
+	 	client->addOutBuffer(std::string("451 * :PRIVMSG-You have not registered \r\n"));
 	else if (params.size() < 2)
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " PRIVMSG :Not enough parameters \r\n"));
+	else if (params[1].find("DCC") != std::string::npos)
+		_fileTransfer(client, params);
 	else
 	{
 		std::vector<std::string> obj;
@@ -368,7 +372,93 @@ void Server::_botHour(Client *client, std::vector<std::string> params)
     std::string time = ss.str();
 	client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + time + "'\r\n");
 }
-// void Server::_cmdDcc(Client *client, std::vector<std::string> params)
-// {
 
-// }
+void Server::_fileTransfer(Client *client, std::vector<std::string> params)
+{
+	(void)client;
+	std::istringstream iss(params[1]);
+	std::string f_cmd, clientTarg, s_cmd, option, file_name, ip, port, file_size;
+	clientTarg = params[0];
+	std::getline(iss, s_cmd, ' ');
+	std::getline(iss, option, ' ');
+	std::getline(iss, file_name, ' ');
+	std::getline(iss, ip, ' ');
+	std::getline(iss, port, ' ');
+	std::getline(iss, file_size, '\r');
+	std::cout << clientTarg << ", " << s_cmd << ", " << option << ", " << file_name << ip << ", " << port << ", " << file_size << std::endl;
+	if (s_cmd != "DCC" || option != "SEND" || getClientNick(clientTarg) == NULL || file_name.empty() || ip.empty() || port.empty() || file_size.empty())
+	 {
+	 	std::string reply = "ERROR :Invalid command!\r\n";
+	 	send(_fd, reply.c_str(), reply.length(), 0);
+	 	return ;
+	 }
+
+	 int port_int =  std::strtod(port.c_str(), NULL);
+	 if (port_int <= 0)
+	 {
+	 	std::string reply = "ERROR :Port givin is negative!\r\n";
+	 	send(_fd, reply.c_str(), reply.length(), 0);
+	 	return ;
+	 }
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0)
+	{
+	 	std::string reply = "ERROR :Could not create socket!\r\n";
+	 	send(_fd, reply.c_str(), reply.length(), 0);
+	 	return ;
+ 	}
+	 struct sockaddr_in serv_addr;
+	 memset(&serv_addr, 0, sizeof(serv_addr));
+
+	 serv_addr.sin_family = AF_INET;
+	 serv_addr.sin_port = htons(port_int);
+	 inet_pton(AF_INET, ip.c_str(), &(serv_addr.sin_addr));
+
+	 if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+	 {
+	 	std::string reply = "ERROR :Connection failure!\r\n";
+	 	send(_fd, reply.c_str(), reply.length(), 0);
+	 	return ;
+	 }
+	std::string reply = "File transfer started!\r\n";
+	send(_fd, reply.c_str(), reply.length(), 0);
+	//file_transfer = true;
+
+	std::string source_file_path = file_name;
+	std::ifstream infile(source_file_path.c_str(), std::ifstream::binary);
+	if (!infile)
+	{
+		std::string reply = "ERROR :Infile is invalid!\r\n";
+		send(_fd, reply.c_str(), reply.length(), 0);
+		return ;
+	}
+
+	const char* home = std::getenv("HOME");
+	if (!home)
+	{
+		std::string reply = "ERROR :Invalid HOME variable!\r\n";
+		send(_fd, reply.c_str(), reply.length(), 0);
+		return ;
+	}
+	std::string destination_file_path = std::string(home) + "/" + "_copy";
+	std::ofstream outfile(destination_file_path.c_str(), std::ofstream::binary);
+	if (!outfile)
+	{
+		std::string reply = "ERROR :Outfile wasn't created!\r\n";
+		send(_fd, reply.c_str(), reply.length(), 0);
+		return ;
+	}
+
+	char buffer[1024];
+	std::streamsize n;
+	while ((n = infile.read(buffer, sizeof(buffer)).gcount()) > 0)
+	{
+		outfile.write(buffer, n);
+	}
+
+	std::string newreply = "File transfer completed!\r\n";
+	send(_fd, newreply.c_str(), newreply.length(), 0);
+	infile.close();
+	outfile.close();
+}
+

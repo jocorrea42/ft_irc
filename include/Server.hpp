@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/09/06 00:55:43 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/06 16:46:25 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@
 #include <cerrno>
 #include <ctime>
 #include <iomanip>
+#include <fstream>
 
 class Client;
 class Channel;
@@ -67,13 +68,15 @@ private:
 	void _broadcastAllServer(const std::string &message);
 	void _cmdPrivmsg(Client *client, std::vector<std::string> params);
 	//void _cmdDcc(Client *client, std::vector<std::string> params);
-	void _disconnectClient(Client *client, std::string msg);
+	void _disconnectClient(Client *client, std::string msg, int mode);
 	void _broadcastClientChannel(Channel *channel, std::string msg, int fd);
 	std::vector<std::string> _splitStr(const std::string &str, char delimiter);
-	bool _addClient(int inConectionFd, struct sockaddr_in  clientadd);
+	void _addClient(int inConectionFd, struct sockaddr_in  clientadd);
 	void _bot(Client *client, std::vector<std::string> params);
 	void _botHour(Client *client, std::vector<std::string> params);	
 	void _botRandom(Client *client, std::vector<std::string> params);
+	void _fileTransfer(Client *client, std::vector<std::string> params);
+	void _cmdWho(Client* client, std::vector<std::string> params);
 public:
 	Server(); //-> default constructor
 	Server(int port, std::string password);

@@ -1,5 +1,5 @@
 NAME		=	ircserv
-CPPFLAGS	=	-I $(INC_DIR) -Wall -Wextra -Werror -std=c++98 -MMD #-fsanitize=address
+CPPFLAGS	=	-I $(INC_DIR) -Wall -Wextra -Werror -std=c++98 -MMD -fsanitize=address
 SRC_DIR		=	src/
 INC_DIR		=	./include/
 OBJ_DIR		=	obj/
