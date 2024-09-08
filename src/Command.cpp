@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/06 21:00:17 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/08 10:54:47 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -409,7 +409,7 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 	std::getline(iss, ip, ' ');
 	std::getline(iss, port, ' ');
 	std::getline(iss, file_size, '\r');
-	std::cout << clientTarg << " " << getClientNick(clientTarg) << ", " << s_cmd << ", " << option << ", " << file_name << ", " << ip << ", " << port << ", " << file_size << std::endl;
+	//std::cout << clientTarg << " " << getClientNick(clientTarg) << ", " << s_cmd << ", " << option << ", " << file_name << ", " << ip << ", " << port << ", " << file_size << std::endl;
 	if (option != "SEND" || getClientNick(clientTarg) == NULL || file_name.empty() || ip.empty() || port.empty() || file_size.empty())
 	{
 		client->addOutBuffer(std::string("ERROR :Invalid command!\r\n"));
@@ -436,8 +436,9 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 	 inet_pton(AF_INET, ip.c_str(), &(serv_addr.sin_addr));
 
 	 if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-	 {
+	 {   std::cout << "ENTRO AQUI " << std::endl;
 	 	client->addOutBuffer(std::string("ERROR :Connection failure!\r\n"));
+		close(sockfd);
 	 	return ;
 	 }
 	client->addOutBuffer(std::string("File transfer started!\r\n"));
@@ -445,11 +446,12 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 
 	std::string source_file_path = file_name;
 	std::cout << source_file_path.c_str() << std::endl;
-	std::ifstream infile(source_file_path.c_str(), std::ifstream::binary);
+	std::ifstream infile(source_file_path.c_str());//, std::ifstream::in);
 	if (!infile.good())
 	{
 
 		client->addOutBuffer(std::string("ERROR :Infile is invalid!\r\n"));
+		close(sockfd);
 		return ;
 	}
 
@@ -457,6 +459,7 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 	if (!home)
 	{
 		client->addOutBuffer(std::string("ERROR :Invalid HOME variable!\r\n"));
+		close(sockfd);
 		return ;
 	}
 	std::string destination_file_path = std::string(home) + "/" + "_copy";
@@ -464,6 +467,7 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 	if (!outfile)
 	{
 		client->addOutBuffer(std::string("ERROR :Outfile wasn't created!\r\n"));
+		close(sockfd);
 		return ;
 	}
 
