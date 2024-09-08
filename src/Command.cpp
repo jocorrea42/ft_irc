@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/06 17:02:02 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/06 21:00:17 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ void Server::_cmdMode(Client *client, const std::vector<std::string> &params)
 
 void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 {
-	std::cout << "el parametro 0 es: " << params[0] << std::endl;
 	if (Channel *channel = getChannel(params[0]))
 	{
 		if (params.size() == 1)
@@ -58,7 +57,6 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 								{
 									channel->setPassword(setMode ? params[index++] : "x");
 									_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " MODE " + params[0] + " " + (setMode ? "+k" : "-k") + " " + (setMode ? channel->getPassword() : "") + "\r\n"), -1);
-									
 								}
 								else
 									client->addOutBuffer(std::string("467 * " + client->getNickName() + " " + channel->getName() + " : MODE :password must not be x\r\n"));
@@ -201,7 +199,7 @@ void Server::_cmdKick(Client *client, std::vector<std::string> params)
 void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 {
 	if (client->getStatus() != REG)
-	 	client->addOutBuffer(std::string("451 * :JOIN-You have not registered \r\n"));
+		client->addOutBuffer(std::string("451 * :JOIN-You have not registered \r\n"));
 	else if (params.empty())
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " JOIN :Not enough parameters\r\n"));
 	else
@@ -239,7 +237,7 @@ void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 					channel->removeInvited(client->getNickName());
 					_broadcastClientChannel(channel, std::string(":" + client->getNickName() + "!~" + client->getName() + " JOIN " + channel->getName() + "\r\n"), client->getFd());
 					if (channel->getTopic() == "")
-						client->addOutBuffer("331 " + channel->getName()+ " " + client->getNickName() + " :No topic is set" + "\r\n");
+						client->addOutBuffer("331 " + channel->getName() + " " + client->getNickName() + " :No topic is set" + "\r\n");
 					else
 						client->addOutBuffer(std::string("332 " + client->getNickName() + " " + channel->getName() + " :" + channel->getTopic() + "\r\n"));
 				}
@@ -261,8 +259,8 @@ void Server::_broadcastAllServer(const std::string &message)
 
 void Server::_cmdPrivmsg(Client *client, std::vector<std::string> params)
 {
-	 if (client->getStatus() != REG)
-	 	client->addOutBuffer(std::string("451 * :PRIVMSG-You have not registered \r\n"));
+	if (client->getStatus() != REG)
+		client->addOutBuffer(std::string("451 * :PRIVMSG-You have not registered \r\n"));
 	else if (params.size() < 2)
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " PRIVMSG :Not enough parameters \r\n"));
 	else if (params[1].find("DCC") != std::string::npos)
@@ -292,31 +290,31 @@ void Server::_cmdPrivmsg(Client *client, std::vector<std::string> params)
 			}
 			else
 			{
-				
+
 				if (name == "Bot")
 					_bot(client, params);
 				else if (cli == NULL)
 					client->addOutBuffer(std::string("401 " + client->getNickName() + " " + name + " :No such nick \r\n"));
-				else 
+				else
 					cli->addOutBuffer(std::string(":" + client->getNickName() + " PRIVMSG " + name + " :" + params[1] + "\r\n"));
 			}
 		}
 	}
 }
 
-void	Server::_bot(Client *client, std::vector<std::string> params)
+void Server::_bot(Client *client, std::vector<std::string> params)
 {
 	std::string bot = "Bot";
-	std::string	validCmds[4] = {
+	std::string validCmds[4] = {
 		"HELP",
 		"HOUR",
 		"LOVE",
 		"RANDOM",
-		};
+	};
 
 	for (size_t i = 0; i < params[1].size(); i++)
 		params[1][i] = std::toupper(params[1][i]);
-	
+
 	int index = 0;
 	while (index < 4)
 	{
@@ -326,33 +324,61 @@ void	Server::_bot(Client *client, std::vector<std::string> params)
 	}
 	switch (index + 1)
 	{
-		case 1: client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + " :Ask me 'HOUR', 'LOVE' or 'RANDOM'\r\n"); break;
-		case 2: _botHour(client, params); break;
-	    case 3: client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + " :send you love through this terminal <3\r\n"); break;
-		case 4: _botRandom(client, params); break;
-		default:
-		 	client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + "Invalid request, ask 'HELP' for more infos");
+	case 1:
+		client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + " :Ask me 'HOUR', 'LOVE' or 'RANDOM'\r\n");
+		break;
+	case 2:
+		_botHour(client, params);
+		break;
+	case 3:
+		client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + " :send you love through this terminal <3\r\n");
+		break;
+	case 4:
+		_botRandom(client, params);
+		break;
+	default:
+		client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + "Invalid request, ask 'HELP' for more infos");
 	}
 }
 void Server::_botRandom(Client *client, std::vector<std::string> params)
 {
 	(void)params;
-	srand(time(NULL)); // initializes the random number generator with a seed value based on the current time
-    int index = rand() % 10 + 1; // number between 1 and 10
-	
+	srand(time(NULL));			 // initializes the random number generator with a seed value based on the current time
+	int index = rand() % 10 + 1; // number between 1 and 10
+
 	std::string str;
 	switch (index)
 	{
-		case 1: str = "Wearing headphones for just an hour could increase the bacteria in your ear by 700 times."; break;
-		case 2: str = "Google images was literally created after Jennifer Lopez wore that infamous dress at the 2000 Grammys"; break;
-		case 3: str = "Los Angeles' full name is 'El Pueblo de Nuestra Senora la Reina de los Angeles de Porciuncula'"; break;
-		case 4: str = "Tigers have striped skin, not just striped fur."; break;
-		case 5: str = "Like fingerprints, everyone's tongue print is different."; break;
-		case 6: str = "Cat urine glows under a black-light."; break;
-		case 7: str = "A shrimp's heart is in its head."; break;
-		case 8: str = "The Spice Girls were originally a band called Touch."; break;
-		case 9: str = "The unicorn is the national animal of Scotland"; break;
-		case 10: str = "In 2014, there was a Tinder match in Antarctica"; break;
+	case 1:
+		str = "Wearing headphones for just an hour could increase the bacteria in your ear by 700 times.";
+		break;
+	case 2:
+		str = "Google images was literally created after Jennifer Lopez wore that infamous dress at the 2000 Grammys";
+		break;
+	case 3:
+		str = "Los Angeles' full name is 'El Pueblo de Nuestra Senora la Reina de los Angeles de Porciuncula'";
+		break;
+	case 4:
+		str = "Tigers have striped skin, not just striped fur.";
+		break;
+	case 5:
+		str = "Like fingerprints, everyone's tongue print is different.";
+		break;
+	case 6:
+		str = "Cat urine glows under a black-light.";
+		break;
+	case 7:
+		str = "A shrimp's heart is in its head.";
+		break;
+	case 8:
+		str = "The Spice Girls were originally a band called Touch.";
+		break;
+	case 9:
+		str = "The unicorn is the national animal of Scotland";
+		break;
+	case 10:
+		str = "In 2014, there was a Tinder match in Antarctica";
+		break;
 	}
 	client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + str + "\r\n");
 }
@@ -361,13 +387,13 @@ void Server::_botHour(Client *client, std::vector<std::string> params)
 {
 	(void)params;
 	std::stringstream ss;
-    std::time_t t = std::time(NULL);
-    std::tm* tm_local = std::localtime(&t);
+	std::time_t t = std::time(NULL);
+	std::tm *tm_local = std::localtime(&t);
 
-    ss << "Current local time: " << tm_local->tm_hour << ":" 
-       << tm_local->tm_min << ":" << tm_local->tm_sec;
-    
-    std::string time = ss.str();
+	ss << "Current local time: " << tm_local->tm_hour << ":"
+	   << tm_local->tm_min << ":" << tm_local->tm_sec;
+
+	std::string time = ss.str();
 	client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + time + "'\r\n");
 }
 
@@ -383,28 +409,25 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 	std::getline(iss, ip, ' ');
 	std::getline(iss, port, ' ');
 	std::getline(iss, file_size, '\r');
-	std::cout << clientTarg << ", " << s_cmd << ", " << option << ", " << file_name << ip << ", " << port << ", " << file_size << std::endl;
-	if (s_cmd != "DCC" || option != "SEND" || getClientNick(clientTarg) == NULL || file_name.empty() || ip.empty() || port.empty() || file_size.empty())
-	 {
-	 	std::string reply = "ERROR :Invalid command!\r\n";
-	 	send(_fd, reply.c_str(), reply.length(), 0);
-	 	return ;
-	 }
+	std::cout << clientTarg << " " << getClientNick(clientTarg) << ", " << s_cmd << ", " << option << ", " << file_name << ", " << ip << ", " << port << ", " << file_size << std::endl;
+	if (option != "SEND" || getClientNick(clientTarg) == NULL || file_name.empty() || ip.empty() || port.empty() || file_size.empty())
+	{
+		client->addOutBuffer(std::string("ERROR :Invalid command!\r\n"));
+		return;
+	}
 
-	 int port_int =  std::strtod(port.c_str(), NULL);
-	 if (port_int <= 0)
-	 {
-	 	std::string reply = "ERROR :Port givin is negative!\r\n";
-	 	send(_fd, reply.c_str(), reply.length(), 0);
-	 	return ;
-	 }
+	int port_int = std::strtod(port.c_str(), NULL);
+	if (port_int <= 0)
+	{
+		client->addOutBuffer(std::string("ERROR :Port givin is negative!\r\n"));
+		return;
+	}
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
 	{
-	 	std::string reply = "ERROR :Could not create socket!\r\n";
-	 	send(_fd, reply.c_str(), reply.length(), 0);
+	 	client->addOutBuffer(std::string("ERROR :Could not create socket!\r\n"));
 	 	return ;
- 	}
+	}
 	 struct sockaddr_in serv_addr;
 	 memset(&serv_addr, 0, sizeof(serv_addr));
 
@@ -414,36 +437,33 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 
 	 if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	 {
-	 	std::string reply = "ERROR :Connection failure!\r\n";
-	 	send(_fd, reply.c_str(), reply.length(), 0);
+	 	client->addOutBuffer(std::string("ERROR :Connection failure!\r\n"));
 	 	return ;
 	 }
-	std::string reply = "File transfer started!\r\n";
-	send(_fd, reply.c_str(), reply.length(), 0);
+	client->addOutBuffer(std::string("File transfer started!\r\n"));
 	//file_transfer = true;
 
 	std::string source_file_path = file_name;
+	std::cout << source_file_path.c_str() << std::endl;
 	std::ifstream infile(source_file_path.c_str(), std::ifstream::binary);
-	if (!infile)
+	if (!infile.good())
 	{
-		std::string reply = "ERROR :Infile is invalid!\r\n";
-		send(_fd, reply.c_str(), reply.length(), 0);
+
+		client->addOutBuffer(std::string("ERROR :Infile is invalid!\r\n"));
 		return ;
 	}
 
 	const char* home = std::getenv("HOME");
 	if (!home)
 	{
-		std::string reply = "ERROR :Invalid HOME variable!\r\n";
-		send(_fd, reply.c_str(), reply.length(), 0);
+		client->addOutBuffer(std::string("ERROR :Invalid HOME variable!\r\n"));
 		return ;
 	}
 	std::string destination_file_path = std::string(home) + "/" + "_copy";
 	std::ofstream outfile(destination_file_path.c_str(), std::ofstream::binary);
 	if (!outfile)
 	{
-		std::string reply = "ERROR :Outfile wasn't created!\r\n";
-		send(_fd, reply.c_str(), reply.length(), 0);
+		client->addOutBuffer(std::string("ERROR :Outfile wasn't created!\r\n"));
 		return ;
 	}
 
@@ -454,9 +474,8 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 		outfile.write(buffer, n);
 	}
 
-	std::string newreply = "File transfer completed!\r\n";
-	send(_fd, newreply.c_str(), newreply.length(), 0);
+	
+	client->addOutBuffer(std::string( "File transfer completed!\r\n"));
 	infile.close();
 	outfile.close();
 }
-

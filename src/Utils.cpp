@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/06 16:55:42 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/06 21:15:22 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,11 +206,6 @@ void Server::_disconnectClient(Client *client, std::string msg, int mode)
 	std::string quit_msg = ":" + client->getNickName() + "!~" + client->getName() + " QUIT :" + msg + " \r\n";
 	if (mode == 1)
 		_broadcastAllServer(quit_msg);
-	else
-	{
-		client->addOutBuffer(quit_msg);
-		client->sendOwnMessage();
-	}
 	for (size_t i = 0; i < _channels.size(); i++)
 	{
 		if (_channels[i].isClient(client))
