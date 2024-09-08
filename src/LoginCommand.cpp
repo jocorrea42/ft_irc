@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   LoginCommand.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 21:25:22 by fili              #+#    #+#             */
-/*   Updated: 2024/09/06 19:01:43 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/08 10:17:45 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ void Server::_userAutentication(Client *client, const std::vector<std::string> &
 		client->setName(realname);
 		client->addOutBuffer(std::string("001 " + client->getNickName() + " :Welcome to the Internet Relay Network " + client->getNickName() + "!" + username + "@" + realname + "\r\n"));
 		client->addOutBuffer(std::string("002 " + client->getNickName() + " :Your host is " + servername + ", running version 1.0\r\n"));
-		client->addOutBuffer(std::string("003 " + client->getNickName() + " :This server was created for apodader and jocorrea \"THE PACHANGA TEAM\"" + " \r\n"));
+		client->addOutBuffer(std::string("003 " + client->getNickName() + " :This server was created by apodader and jocorrea \"THE PACHANGA TEAM\"" + " \r\n"));
 		client->addOutBuffer(std::string("004 " + client->getNickName() + " " + servername + " 1.0 \r\n"));
 		client->nextStatus();
 		std::vector<std::string> pm;

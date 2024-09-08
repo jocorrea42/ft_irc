@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/06 21:00:17 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/08 11:03:28 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -443,20 +443,18 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 	client->addOutBuffer(std::string("File transfer started!\r\n"));
 	//file_transfer = true;
 
-	std::string source_file_path = file_name;
-	std::cout << source_file_path.c_str() << std::endl;
-	std::ifstream infile(source_file_path.c_str(), std::ifstream::binary);
-	if (!infile.good())
-	{
-
-		client->addOutBuffer(std::string("ERROR :Infile is invalid!\r\n"));
-		return ;
-	}
-
 	const char* home = std::getenv("HOME");
 	if (!home)
 	{
 		client->addOutBuffer(std::string("ERROR :Invalid HOME variable!\r\n"));
+		return ;
+	}
+	std::string source_file_path = std::string((std::string)home + (std::string)"/" + file_name);
+	std::cout << home << " " << source_file_path.c_str() << std::endl;
+	std::ifstream infile(source_file_path.c_str(), std::ifstream::binary);
+	if (!infile.good())
+	{
+		client->addOutBuffer(std::string("ERROR :Infile is invalid!\r\n"));
 		return ;
 	}
 	std::string destination_file_path = std::string(home) + "/" + "_copy";
@@ -474,7 +472,6 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 		outfile.write(buffer, n);
 	}
 
-	
 	client->addOutBuffer(std::string( "File transfer completed!\r\n"));
 	infile.close();
 	outfile.close();
