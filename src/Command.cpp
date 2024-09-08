@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/08 11:07:24 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/08 11:10:39 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -409,7 +409,7 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 	std::getline(iss, ip, ' ');
 	std::getline(iss, port, ' ');
 	std::getline(iss, file_size, '\r');
-	//std::cout << clientTarg << " " << getClientNick(clientTarg) << ", " << s_cmd << ", " << option << ", " << file_name << ", " << ip << ", " << port << ", " << file_size << std::endl;
+	// std::cout << clientTarg << " " << getClientNick(clientTarg) << ", " << s_cmd << ", " << option << ", " << file_name << ", " << ip << ", " << port << ", " << file_size << std::endl;
 	if (option != "SEND" || getClientNick(clientTarg) == NULL || file_name.empty() || ip.empty() || port.empty() || file_size.empty())
 	{
 		client->addOutBuffer(std::string("ERROR :Invalid command!\r\n"));
@@ -425,42 +425,40 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
 	{
-	 	client->addOutBuffer(std::string("ERROR :Could not create socket!\r\n"));
-	 	return ;
+		client->addOutBuffer(std::string("ERROR :Could not create socket!\r\n"));
+		return;
 	}
-	 struct sockaddr_in serv_addr;
-	 memset(&serv_addr, 0, sizeof(serv_addr));
+	struct sockaddr_in serv_addr;
+	memset(&serv_addr, 0, sizeof(serv_addr));
 
-	 serv_addr.sin_family = AF_INET;
-	 serv_addr.sin_port = htons(port_int);
-	 inet_pton(AF_INET, ip.c_str(), &(serv_addr.sin_addr));
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(port_int);
+	inet_pton(AF_INET, ip.c_str(), &(serv_addr.sin_addr));
 
-	 if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-	 {   std::cout << "ENTRO AQUI " << std::endl;
-	 	client->addOutBuffer(std::string("ERROR :Connection failure!\r\n"));
-		close(sockfd);
-	 	return ;
-	 }
-	client->addOutBuffer(std::string("File transfer started!\r\n"));
-	//file_transfer = true;
-
-	std::string source_file_path = file_name;
-	std::cout << source_file_path.c_str() << std::endl;
-	std::ifstream infile(source_file_path.c_str());//, std::ifstream::in);
-	if (!infile.good())
+	if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	{
-
-		client->addOutBuffer(std::string("ERROR :Infile is invalid!\r\n"));
+		std::cout << "ENTRO AQUI " << std::endl;
+		client->addOutBuffer(std::string("ERROR :Connection failure!\r\n"));
 		close(sockfd);
-		return ;
+		return;
 	}
+	client->addOutBuffer(std::string("File transfer started!\r\n"));
+	// file_transfer = true;
 
-	const char* home = std::getenv("HOME");
+	const char *home = std::getenv("HOME");
 	if (!home)
 	{
 		client->addOutBuffer(std::string("ERROR :Invalid HOME variable!\r\n"));
+		return;
+	}
+	std::string source_file_path = std::string((std::string)home + (std::string) "/" + file_name);
+	std::cout << home << " " << source_file_path.c_str() << std::endl;
+	std::ifstream infile(source_file_path.c_str(), std::ifstream::binary);
+	if (!infile.good())
+	{
+		client->addOutBuffer(std::string("ERROR :Infile is invalid!\r\n"));
 		close(sockfd);
-		return ;
+		return;
 	}
 	std::string destination_file_path = std::string(home) + "/" + "_copy";
 	std::ofstream outfile(destination_file_path.c_str(), std::ofstream::binary);
@@ -468,7 +466,7 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 	{
 		client->addOutBuffer(std::string("ERROR :Outfile wasn't created!\r\n"));
 		close(sockfd);
-		return ;
+		return;
 	}
 
 	char buffer[1024];
@@ -478,7 +476,7 @@ void Server::_fileTransfer(Client *client, std::vector<std::string> params)
 		outfile.write(buffer, n);
 	}
 
-	client->addOutBuffer(std::string( "File transfer completed!\r\n"));
+	client->addOutBuffer(std::string("File transfer completed!\r\n"));
 	infile.close();
 	outfile.close();
 }
