@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:05:05 by fili              #+#    #+#             */
-/*   Updated: 2024/09/05 19:41:52 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/11 18:18:44 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,15 +56,15 @@ public:
     std::string getPassword(){return this->_password;}
 	std::string getName(){return this->_name;}
 	size_t hasAdmin(){ return (_admins.size());}
-	bool isClient(Client *fd);
+	bool isClient(Client *client);
 	bool isInvited(std::string nick);
 	void invite(std::string const &nick);
 	bool isAdmin(std::string nick);
 	bool isInvOnly();
 	bool isTopicLocked();
 	bool isFull();
-    void addClient(Client *client);
-    void addAdmin(Client *client);
+    void addClient(const std::string &nick);
+    void addAdmin(const std::string &nick);
     bool removeClient(std::string nick);
     void removeAdmin(std::string nick);
 	void removeInvited(std::string const &nick);

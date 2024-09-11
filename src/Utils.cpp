@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/08 10:31:39 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/11 18:48:25 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,7 +216,7 @@ void Server::_disconnectClient(Client *client, std::string msg, int mode)
 			else if (_channels[i].hasAdmin() == 0)
 			{
 				Client *newAdmin = getClientNick(_channels[i].getClients()[0]);
-				_channels[i].addAdmin(newAdmin);
+				_channels[i].addAdmin(newAdmin->getNickName());
 				newAdmin->addOutBuffer(std::string(_channels[i].getName() + " No admins left connected/you are the new Admin \r\n"));
 			}
 		}
@@ -232,4 +232,22 @@ std::vector<std::string> Server::_splitStr(const std::string &str, char delimite
 	while (std::getline(iss, token, delimiter))
 		tokens.push_back(token);
 	return tokens;
+}
+
+void Server::changeNickname(Client *client, const std::string &newNick)
+{
+	for (std::vector<Channel>::iterator i = _channels.begin(); i != _channels.end(); ++i)
+	{
+		if (i->isClient(client))
+		{
+			if (i->isAdmin(client->getNickName()))
+			{
+				i->removeAdmin(client->getNickName());
+				i->addAdmin(newNick);
+			}
+			i->removeClient(client->getNickName());
+			i->addClient(newNick);
+		}
+	}
+	client->setNickName(newNick);
 }

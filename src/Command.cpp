@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/08 11:10:39 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/11 18:17:48 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 								Client *target = getClientNick(nickname);
 								if (target)
 								{
-									(setMode) ? channel->addAdmin(target) : channel->removeAdmin(target->getNickName());
+									(setMode) ? channel->addAdmin(target->getNickName()) : channel->removeAdmin(target->getNickName());
 									_broadcastClientChannel(channel, std::string(":" + client->getNickName() + " MODE " + params[0] + " " + (setMode ? "+o" : "-o") + " " + nickname + "\r\n"), -1);
 								}
 								else
@@ -233,11 +233,12 @@ void Server::_cmdJoin(Client *client, const std::vector<std::string> &params)
 					client->addOutBuffer(std::string("475 * " + channel->getName() + " :Cannot join channel (+k)\r\n"));
 				else
 				{
-					channel->addClient(client);
+					channel->addClient(client->getNickName());
+					client->addOutBuffer(std::string("You joined " + channel->getName() + " \r\n"));
 					channel->removeInvited(client->getNickName());
 					_broadcastClientChannel(channel, std::string(":" + client->getNickName() + "!~" + client->getName() + " JOIN " + channel->getName() + "\r\n"), client->getFd());
 					if (channel->getTopic() == "")
-						client->addOutBuffer("331 " + channel->getName() + " " + client->getNickName() + " :No topic is set" + "\r\n");
+						client->addOutBuffer("331 " + channel->getName() + " :No topic is set" + "\r\n");
 					else
 						client->addOutBuffer(std::string("332 " + client->getNickName() + " " + channel->getName() + " :" + channel->getTopic() + "\r\n"));
 				}

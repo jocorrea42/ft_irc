@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/09/06 16:46:25 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/11 17:58:17 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,8 +96,7 @@ public:
 	void addClient(const Client &newClient);
 	void addChannel(Client *client, const std::vector<std::string> &params);
 	//	void 		addFds(pollfd newFd);
-	void setUsername(const std::string &username, const int &fd);
-	void setNickname(const std::string &cmd, const int &fd);
+	void changeNickname(Client *client, const std::string &newNick);
 	void ServerStart();					   //-> server initialization
 	void AcceptNewClient();				   //-> accept new client
 	void ReceiveNewData(int fd);		   //-> receive new data from a registered client

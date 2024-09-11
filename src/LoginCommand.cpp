@@ -6,7 +6,7 @@
 /*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 21:25:22 by fili              #+#    #+#             */
-/*   Updated: 2024/09/08 10:17:45 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/11 18:51:03 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,17 @@ bool Server::_nickNameOk(const std::string &nickname)
 void Server::_nickAutentication(Client *client, const std::vector<std::string> &params)
 {
 	std::string oldNick = client->getNickName();
-	if (client->getStatus() != NICK)
+	if (client->getStatus() == REG)
+	{
+		if (client->getNickName() == (params[0]))
+			client->addOutBuffer(std::string(params[0] + " :You are alredy using that nickname.\r\n"));
+		else
+		{
+			changeNickname(client, params[0]);
+			_broadcastAllServer(std::string(":" + oldNick + " NICK " + params[0] + "\r\n"));
+		}
+	}
+	else if (client->getStatus() != NICK)
 		_disconnectClient(client, std::string("451 * :" + params[0] + " may not reregister (need NICK state)\r\n"), 0);
 	else if (params.size() == 0)
 		client->addOutBuffer(std::string("431 * :No nickname given\r\n"));
@@ -40,11 +50,6 @@ void Server::_nickAutentication(Client *client, const std::vector<std::string> &
 		client->addOutBuffer(std::string("432 * " + params[0] + " :Erroneous nickname\r\n"));
 	else if (getClientNick(params[0]))
 		client->addOutBuffer(std::string("433 * " + params[0] + " :Nickname is already in use\r\n"));
-	else if (client->getStatus() == REG)
-	{
-		client->setNickName(params[0]);
-		_broadcastAllServer(std::string(":" + oldNick + " NICK " + params[0] + "\r\n"));
-	}
 	else
 	{
 		client->addOutBuffer(std::string(": " + client->getNickName() + " NICK " + params[0] + "\r\n"));

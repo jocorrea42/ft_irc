@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:12:02 by fili              #+#    #+#             */
-/*   Updated: 2024/09/05 19:42:43 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/11 18:20:50 by apodader         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,10 +57,10 @@ bool Channel::isInvited(std::string nick)
 	return false;
 }
 
-bool Channel::isClient(Client *fd)
+bool Channel::isClient(Client *client)
 {
 	for (std::vector<std::string>::iterator i = _clients.begin(); i != _clients.end(); ++i)
-		if ((*i) == fd->getNickName())
+		if ((*i) == client->getNickName())
 			return true;
 	return false;
 }
@@ -85,10 +85,9 @@ bool Channel::isAdmin(std::string nick)
 	return false;
 }
 
-void Channel::addClient(Client *client)
+void Channel::addClient(const std::string &nick)
 {
-	_clients.push_back(client->getNickName());
-	client->addOutBuffer(std::string("You joined " + getName() + " \r\n"));
+	_clients.push_back(nick);
 }
 
 bool Channel::removeClient(std::string nick)
@@ -100,7 +99,6 @@ bool Channel::removeClient(std::string nick)
 			if (isAdmin(nick))
 			 	removeAdmin(nick);
 			_clients.erase(i);
-			std::cout << "se elimino cliente <" << nick << "> del canal: " << _name << std::endl;
 			return true;
 		}
 		
@@ -108,9 +106,9 @@ bool Channel::removeClient(std::string nick)
 	return false;
 }
 
-void Channel::addAdmin(Client *client)
+void Channel::addAdmin(const std::string &nick)
 {
-	_admins.push_back(client->getNickName());
+	_admins.push_back(nick);
 }
 
 void Channel::removeAdmin(std::string nick)
