@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:25:16 by fili              #+#    #+#             */
-/*   Updated: 2024/09/05 15:21:31 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/13 12:44:06 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,61 +37,42 @@ void Client::nextStatus()
 		_status = REG;
 }
 
-int    Client::sendOwnMessage()
+int Client::sendOwnMessage()
 {
-	int ret = send(_fd, NULL, 0, 0);
-	if (ret == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))// The writing operation would block
-		return 0;
-	else if (ret == -1)// -1 == disconected client
-		return 0;
-	int bytes = send(_fd, _outBuffer.c_str(), _outBuffer.length(), 0);
-	if (bytes == -1 && errno != EAGAIN && errno != EWOULDBLOCK)// -1 == disconected client
-			return 0;///mal
-	return (1);//bien
+	return (send(_fd, _outBuffer.c_str(), _outBuffer.length(), 0) < 0) ? 0 : 1;
 }
 
 void Client::removeFirstInCmd()
-{ 
+{
 	std::string::size_type index = this->_inBuffer.find(std::string("\r\n"));
 	if (index != std::string::npos)
 		this->_inBuffer.erase(0, index + 2);
 }
-void	Client::cleanInBuffer()
+void Client::cleanInBuffer()
 {
 	this->_inBuffer.clear();
 }
 
-void	Client::cleanOutBuffer()
+void Client::cleanOutBuffer()
 {
 	this->_outBuffer.clear();
 }
 
-int		Client::receiveMessage()
+int Client::receiveMessage()
 {
 	char buff[MAX_BUFFER_LEN];
 	ssize_t bytes;
 
-	while (1)
-	{
-		//memset(&buff, 0, MAX_BUFFER_LEN);
-		bytes = recv(_fd, buff, MAX_BUFFER_LEN - 1, 0);
-		if (bytes == -1)
-		{
-			// if (errno == EWOULDBLOCK || errno == EAGAIN)
-			// 	break;
-			// else
-				break;
-		}
-		else if (bytes ==0)
-			return (0);
-		buff[bytes] = 0;
-		this->addInBuffer(buff);
-	}
+	bytes = recv(_fd, buff, MAX_BUFFER_LEN - 1, 0);
+	if (bytes <= 0)
+		return (0);
+	buff[bytes] = 0;
+	this->addInBuffer(buff);
 	return (1);
 }
 
 bool Client::msgLon()
 {
 	std::size_t index = _inBuffer.find(std::string("\r\n"));
-	return ((index != std::string::npos)? (index >= (MAX_BUFFER_LEN - 1)) : ( _inBuffer.length() > (MAX_BUFFER_LEN - 2)));
+	return ((index != std::string::npos) ? (index >= (MAX_BUFFER_LEN - 1)) : (_inBuffer.length() > (MAX_BUFFER_LEN - 2)));
 }

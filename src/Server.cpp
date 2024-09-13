@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/08 10:41:14 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/13 13:30:20 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,20 +46,37 @@ void Server::ServerStart()
 			}
 			if (revents & POLLIN) // si el and es uno es por que revents es POLLIN o sea hay entrada para ser leida
 			{
+				// std::cout << _fds[i].events << std::endl;
 				if (_fds[i].fd == _fd) // en este caso es una peticion al server de un cliente
 					AcceptNewClient();
 				else // en este caso es un mensaje de algun cliente
+				{	std::cout << _fds[i].revents ;
 					ReceiveNewData(_fds[i].fd);
+					cli = getClient((int)_fds[i].fd);
+					if (cli && cli->getInBuffer().empty())
+					{
+						_fds[i].events = POLLOUT;
+						std::cout << "POLLOUT ACTIVO fd= s" << _fds[i].fd << " , " << _fds[i].events << " , " << _fds[i].revents << ", " << POLLOUT << std::endl;
+					}
+				}
 			}
 		}
 		for (int i = 0; i < _polls_size; i++)
 			if (_fds[i].fd != _fd)
 			{
-				cli = getClient((int)_fds[i].fd);
-				if (cli->sendOwnMessage())
-					cli->cleanOutBuffer();
-				else
-					_disconnectClient(cli, std::string("unexpected client disconnection send msg to " + cli->getName() + "\n"), 1);
+				if ((_fds[i], revents & POLLOUT))
+				{ // std::cout << _fds[i].events << std::endl;
+					cli = getClient((int)_fds[i].fd);
+					if (cli->sendOwnMessage())
+						cli->cleanOutBuffer();
+					else
+						_disconnectClient(cli, std::string("unexpected client disconnection send msg to " + cli->getName() + "\n"), 1);
+					if ((cli->getOutBuffer().empty()))
+					{
+						_fds[i].events = POLLIN;
+						std::cout << "POLLIN ACTIVO fd = "<< _fds[i].fd << " , " << _fds[i].events << " , " << _fds[i].revents << ", " << POLLIN << std::endl;
+					}
+				}
 			}
 	}
 	_CloseFds();

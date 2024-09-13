@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 09:33:21 by fili              #+#    #+#             */
-/*   Updated: 2024/09/11 17:58:17 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/13 12:43:56 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@
 #include <string.h>
 #include "Client.hpp"
 #include "Channel.hpp"
-#include <iostream>
 #include <sstream>
 #include <cstdlib>
 #include <cerrno>
