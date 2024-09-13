@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/13 13:30:20 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/13 19:34:32 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,34 +50,32 @@ void Server::ServerStart()
 				if (_fds[i].fd == _fd) // en este caso es una peticion al server de un cliente
 					AcceptNewClient();
 				else // en este caso es un mensaje de algun cliente
-				{	std::cout << _fds[i].revents ;
 					ReceiveNewData(_fds[i].fd);
-					cli = getClient((int)_fds[i].fd);
-					if (cli && cli->getInBuffer().empty())
-					{
-						_fds[i].events = POLLOUT;
-						std::cout << "POLLOUT ACTIVO fd= s" << _fds[i].fd << " , " << _fds[i].events << " , " << _fds[i].revents << ", " << POLLOUT << std::endl;
+				for (size_t j = 1; j < _polls_size; j++)
+				{
+					if (_fds[j].fd != _fds[i].fd)
+					{							   // No enviar a sí mismo
+						_fds[j].events |= POLLOUT; // Marcar como listo para escribir
 					}
 				}
+			}//ahora chequeo los clientes a enviar
+			if (_fds[i].revents & POLLOUT)
+			{
+				// for (int i = 0; i < _polls_size; i++)
+				if (_fds[i].fd != _fd)
+				{
+					cli = getClient((int)_fds[i].fd);
+					if (cli)
+					{
+						if (cli->sendOwnMessage())
+							cli->cleanOutBuffer();
+						else
+							_disconnectClient(cli, std::string("unexpected client disconnection send msg to " + cli->getNickName() + "\n"), 1);
+					}
+				}
+				_fds[i].events &= ~POLLOUT; // Limpiar el evento POLLOUT
 			}
 		}
-		for (int i = 0; i < _polls_size; i++)
-			if (_fds[i].fd != _fd)
-			{
-				if ((_fds[i], revents & POLLOUT))
-				{ // std::cout << _fds[i].events << std::endl;
-					cli = getClient((int)_fds[i].fd);
-					if (cli->sendOwnMessage())
-						cli->cleanOutBuffer();
-					else
-						_disconnectClient(cli, std::string("unexpected client disconnection send msg to " + cli->getName() + "\n"), 1);
-					if ((cli->getOutBuffer().empty()))
-					{
-						_fds[i].events = POLLIN;
-						std::cout << "POLLIN ACTIVO fd = "<< _fds[i].fd << " , " << _fds[i].events << " , " << _fds[i].revents << ", " << POLLIN << std::endl;
-					}
-				}
-			}
 	}
 	_CloseFds();
 }

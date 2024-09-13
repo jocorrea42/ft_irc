@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:04:59 by fili              #+#    #+#             */
-/*   Updated: 2024/09/13 12:44:12 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/13 19:26:55 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ private:
 	std::string		_inBuffer;
 
 public:
-	Client(): _status(PASS){std::cout << "se construyo un nuevo cliente vacio\n";}
+	Client(): _status(PASS), _nickName("Cliente") {_inBuffer = ""; _outBuffer = ""; std::cout << "se construyo un nuevo cliente vacio\n";}
 	Client(int fd, sockaddr_in addr) :_status(PASS), _fd(fd),  _clientadd (addr), _nickName("Cliente") {this->_ipAdd = inet_ntoa(_clientadd.sin_addr); std::cout << "nuevo cliente con ip:" << _ipAdd << ", fd:" << _fd << std::endl;}
 	Client(Client const &other){*this = other;}
 	~Client(){std::cout << "se destruyo el cliente " << _nickName << " fd <" << _fd << "> " << std::endl;}
