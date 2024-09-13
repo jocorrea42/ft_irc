@@ -6,7 +6,7 @@
 /*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/13 19:34:32 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/13 19:50:41 by fili             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,17 +52,13 @@ void Server::ServerStart()
 				else // en este caso es un mensaje de algun cliente
 					ReceiveNewData(_fds[i].fd);
 				for (size_t j = 1; j < _polls_size; j++)
-				{
-					if (_fds[j].fd != _fds[i].fd)
-					{							   // No enviar a sí mismo
+					//if (_fds[j].fd != _fds[i].fd) // No enviar a sí mismo
 						_fds[j].events |= POLLOUT; // Marcar como listo para escribir
-					}
-				}
 			}//ahora chequeo los clientes a enviar
 			if (_fds[i].revents & POLLOUT)
 			{
 				// for (int i = 0; i < _polls_size; i++)
-				if (_fds[i].fd != _fd)
+				if (_fds[i].fd != _fd )
 				{
 					cli = getClient((int)_fds[i].fd);
 					if (cli)
