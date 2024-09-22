@@ -6,7 +6,7 @@
 /*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:30:22 by fili              #+#    #+#             */
-/*   Updated: 2024/09/06 15:49:39 by jocorrea         ###   ########.fr       */
+/*   Updated: 2024/09/22 17:03:22 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
                 ircserv._CloseFds();
                 std::cerr << e.what() << std::endl;
             }
-            std::cout << "The Server Closed!" << std::endl;
+            std::cout << "\nServer closed" << std::endl;
         }
     }
     return (0);

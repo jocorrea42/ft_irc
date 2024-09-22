@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   LoginCommand.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/11 21:25:22 by fili              #+#    #+#             */
-/*   Updated: 2024/09/11 18:51:03 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/22 16:51:10 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,29 +128,23 @@ void Server::_cmdWho(Client *client, std::vector<std::string> params)
 		return;
 	}
 	Channel *channel = getChannel(params[0]);
-	// Check if the client is in the channel
 	if (!channel->isClient(client))
 	{
 		client->addOutBuffer("442 " + client->getNickName() + " " + params[0] + " :You're not on that channel\r\n");
 		return;
 	}
-	// Send the list of users in the channel to the requesting client
 	const std::vector<std::string> clients_in_channel = channel->getClients();
-	// Iterate through the clients and send the message to each of them
 	for (std::vector<std::string>::const_iterator it = clients_in_channel.begin(); it != clients_in_channel.end(); ++it)
 	{
 		Client *user_in_channel = getClientNick(*it);
 		std::string user_info = "352 " + client->getNickName() + " " + params[0] + " " + user_in_channel->getName() + " ";
-		// Use a placeholder for the hostname, or just omit it
 		user_info += "* ";
 		user_info += "Server " + user_in_channel->getNickName() + " ";
-		// Check if the user is an operator
 		if (channel->isAdmin(user_in_channel->getNickName()))
 			user_info += "@";
 
 		user_info += " :0 " + user_in_channel->getUser() + "\r\n";
 		client->addOutBuffer(user_info);
 	}
-	// Send the end of the WHO list message
 	client->addOutBuffer("315 " + client->getNickName() + " " + params[0] + " :End of /WHO list.\r\n");
 }

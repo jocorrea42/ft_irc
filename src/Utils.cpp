@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:57 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/11 18:48:25 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/22 17:00:00 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,15 +80,11 @@ void Server::_CloseFds()
 {
 	for (size_t i = 0; i < _clients.size(); i++)
 	{
-		std::cout << "Client <" << _clients[i].getFd() << "> Disconnected" << std::endl;
 		close(_clients[i].getFd());
 		_clients.erase(_clients.begin() + i);
 	}
 	if (_fd != -1)
-	{
-		std::cout << "Server <" << _fd << "> Disconnected" << std::endl;
 		close(_fd);
-	}
 	_clients.clear();
 }
 
@@ -103,18 +99,18 @@ Server::Server()
 {
 	this->_fd = -1;
 	this->_polls_size = 0;
-	_add.sin_family = AF_INET;		   //-> set the address family to ipv4
-	_add.sin_addr.s_addr = INADDR_ANY; //-> set the address to any local machine address
+	_add.sin_family = AF_INET;
+	_add.sin_addr.s_addr = INADDR_ANY;
 }
 
 Server::Server(int port, std::string password) : _port(port), _pass(password)
 {
 	this->_fd = -1;
 	this->_polls_size = 0;
-	_add.sin_family = AF_INET;			//-> set the address family to ipv4
-	_add.sin_addr.s_addr = INADDR_ANY;	//-> set the address to any local machine address
-	_add.sin_port = htons(this->_port); //-> convert the port to network byte order (big endian)
-	_channels.push_back( Channel("Bot"));
+	_add.sin_family = AF_INET;
+	_add.sin_addr.s_addr = INADDR_ANY;
+	_add.sin_port = htons(this->_port);
+	_channels.push_back(Channel("Bot"));
 }
 
 Server::~Server()
@@ -122,7 +118,6 @@ Server::~Server()
 	for (unsigned short i = 0; i < _polls_size; i++)
 		close(_fds[i].fd);
 	close(_fd);
-	std::cout << "server destroy!!" << std::endl;
 }
 
 void Server::setFd(const int &fd)
@@ -149,14 +144,6 @@ int const &Server::getFd()
 	return (this->_fd);
 }
 
-void Server::printParam(std::vector<std::string> params)
-{
-	std::cout << "PARAMS" << std::endl;
-	for (size_t i = 0; i < params.size(); ++i)
-		std::cout << "|" << params[i] << "|" << std::endl;
-	std::cout << "END" << std::endl;
-}
-
 void Server::_ClearClient(int fd)
 {
 	for (size_t i = 0; i < _fds.size(); i++)
@@ -177,18 +164,17 @@ void Server::_ClearClient(int fd)
 
 void Server::addPollfd(int fd)
 {
-	struct pollfd newFdClientPoll; // lo mismo, estas tres estructuras se utilizan para la creacion y control delos nuevos clientes conectados
+	struct pollfd newFdClientPoll;
 	memset(&newFdClientPoll, 0, sizeof(newFdClientPoll));
-	newFdClientPoll.fd = fd;		 //-> add the server socket to the pollfd
-	newFdClientPoll.events = POLLIN; //-> set the event to POLLIN for reading data
-	_fds.push_back(newFdClientPoll); //-> add the server socket to the pollfd
+	newFdClientPoll.fd = fd;
+	newFdClientPoll.events = POLLIN;
+	_fds.push_back(newFdClientPoll);
 	_polls_size++;
 }
 
 void Server::_broadcastClientChannel(Channel *channel, std::string msg, int fd)
 {
 	std::vector<std::string> clients = channel->getClients();
-
 	clients = channel->getClients();
 	Client *client;
 	for (size_t j = 0; j < clients.size(); j++)
@@ -201,8 +187,6 @@ void Server::_broadcastClientChannel(Channel *channel, std::string msg, int fd)
 
 void Server::_disconnectClient(Client *client, std::string msg, int mode)
 {
-	
-	//std::cout << "client disconnection send msg to " << client->getName() << ", " << msg << std::endl;
 	std::string quit_msg = ":" + client->getNickName() + "!~" + client->getName() + " QUIT :" + msg + " \r\n";
 	if (mode == 1)
 		_broadcastAllServer(quit_msg);

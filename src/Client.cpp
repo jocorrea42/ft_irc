@@ -3,14 +3,34 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:25:16 by fili              #+#    #+#             */
-/*   Updated: 2024/09/13 12:44:06 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/22 16:50:35 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
+
+Client::Client() : _status(PASS), _nickName("Cliente")
+{
+	_inBuffer = "";
+	_outBuffer = "";
+}
+
+Client::Client(int fd, sockaddr_in addr) : _status(PASS), _fd(fd), _clientadd(addr), _nickName("Cliente")
+{
+	this->_ipAdd = inet_ntoa(_clientadd.sin_addr);
+}
+
+Client::~Client()
+{
+}
+
+Client::Client(Client const &other)
+{
+	*this = other;
+}
 
 Client &Client::operator=(Client const &other)
 {
@@ -23,7 +43,6 @@ Client &Client::operator=(Client const &other)
 	this->_outBuffer = other._outBuffer;
 	this->_clientadd = other._clientadd;
 	this->_status = other._status;
-	std::cout << "Asignacion del Cliente:" << other._ipAdd << ", fd:" << other._fd << std::endl;
 	return (*this);
 }
 

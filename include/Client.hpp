@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/23 08:04:59 by fili              #+#    #+#             */
-/*   Updated: 2024/09/13 19:26:55 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/22 16:47:07 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,24 +20,21 @@ enum Status { PASS, NICK, USER, REG };
 class Client
 {
 private:
-	//client tecnical data
 	Status			_status;
 	int 			_fd;
 	struct sockaddr_in _clientadd; 
 	std::string 	_ipAdd;
-	//user setting
 	std::string 	_user;
 	std::string 	_realname;
 	std::string		_nickName;
-	// client messages
 	std::string		_outBuffer;
 	std::string		_inBuffer;
 
 public:
-	Client(): _status(PASS), _nickName("Cliente") {_inBuffer = ""; _outBuffer = ""; std::cout << "se construyo un nuevo cliente vacio\n";}
-	Client(int fd, sockaddr_in addr) :_status(PASS), _fd(fd),  _clientadd (addr), _nickName("Cliente") {this->_ipAdd = inet_ntoa(_clientadd.sin_addr); std::cout << "nuevo cliente con ip:" << _ipAdd << ", fd:" << _fd << std::endl;}
-	Client(Client const &other){*this = other;}
-	~Client(){std::cout << "se destruyo el cliente " << _nickName << " fd <" << _fd << "> " << std::endl;}
+	Client();
+	Client(int fd, sockaddr_in addr);
+	Client(Client const &other);
+	~Client();
 	Client &operator=(Client const &other);
 
 	void		setIp(std::string ip) { this->_ipAdd = ip; }
@@ -66,7 +63,7 @@ public:
 	void		addOutBuffer(char *msg){ this->_outBuffer += std::string(msg);}
 	void		addOutBuffer(const std::string &msg){ this->_outBuffer += msg;}
 	void		addInBuffer(char *msg){ this->_inBuffer += std::string(msg);}
-	int			sendOwnMessage();//el cliente envia el mensaje conformado por el server almacenado en su buffer de salida
-	int			receiveMessage();//el cliente recibe un mensaje desde su fd y lo almacena en su buffer de entrada
+	int			sendOwnMessage();
+	int			receiveMessage();
 };
 #endif

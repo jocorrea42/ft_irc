@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fili <fili@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 08:18:50 by fili              #+#    #+#             */
-/*   Updated: 2024/09/13 19:50:41 by fili             ###   ########.fr       */
+/*   Updated: 2024/09/22 17:01:58 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,48 +17,44 @@ void Server::ServerStart()
 	unsigned short revents;
 	int opt_val = 1;
 	Client *cli;
-	if ((_fd = socket(_add.sin_family, SOCK_STREAM, 0)) == -1) //-> create the server socket and check if the socket is created
+	if ((_fd = socket(_add.sin_family, SOCK_STREAM, 0)) == -1)
 		throw(std::runtime_error("failed to create socket"));
-	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)) == -1) //-> set the socket option (SO_REUSEADDR) to reuse the address
+	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val)) == -1)
 		throw(std::runtime_error("failed to set option (SO_REUSEADDR) on socket"));
-	if (fcntl(_fd, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
+	if (fcntl(_fd, F_SETFL, O_NONBLOCK) == -1)
 		throw(std::runtime_error("failed to set option (O_NONBLOCK) on socket"));
-	if (bind(_fd, reinterpret_cast<struct sockaddr *>(&_add), sizeof(_add)) == -1) //-> bind the socket to the address
+	if (bind(_fd, reinterpret_cast<struct sockaddr *>(&_add), sizeof(_add)) == -1)
 		throw(std::runtime_error("failed to bind socket"));
-	if (listen(_fd, 64) == -1) //-> listen for incoming connections and making the socket a passive socket
+	if (listen(_fd, 64) == -1)
 		throw(std::runtime_error("listen() failed"));
 	addPollfd(_fd);
-	std::cout << "IRC SERVER <" << _fd << "> I AM ALIVE\nSERVER WAIT FOR CLIENT CONNECTIONS .......\n";
-	while (!(this->_Signal))											  //-> run the server until the signal is received
-	{																	  // pongo el poll con 200 milisegundos																	 // poll(fdsarray, fdsarraysize, time) el time en -1 bloquea hasta que exita evento en el poll
-		if ((poll(&_fds[0], _polls_size, 200) == -1) && _Signal == false) // codigo para ver si ocurrio un evento
+	std::cout << "Server is running" << std::endl;
+	while (!(this->_Signal))
+	{
+		if ((poll(&_fds[0], _polls_size, 200) == -1) && _Signal == false)
 			throw(std::runtime_error("poll() fail, el vento salio mal"));
-		for (int i = 0; i < _polls_size; i++) // miro todos los fds en el poll vector
+		for (int i = 0; i < _polls_size; i++)
 		{
 			revents = _fds[i].revents;
 			if (revents == 0)
 				continue;
 			if ((revents & POLLERR) == POLLERR || (revents & POLLHUP) == POLLHUP)
 			{
-				std::cout << "unexpected client disconnection\n";
 				_ClearClient(_fds[i].fd);
 				continue;
 			}
-			if (revents & POLLIN) // si el and es uno es por que revents es POLLIN o sea hay entrada para ser leida
+			if (revents & POLLIN)
 			{
-				// std::cout << _fds[i].events << std::endl;
-				if (_fds[i].fd == _fd) // en este caso es una peticion al server de un cliente
+				if (_fds[i].fd == _fd)
 					AcceptNewClient();
-				else // en este caso es un mensaje de algun cliente
+				else
 					ReceiveNewData(_fds[i].fd);
 				for (size_t j = 1; j < _polls_size; j++)
-					//if (_fds[j].fd != _fds[i].fd) // No enviar a sí mismo
-						_fds[j].events |= POLLOUT; // Marcar como listo para escribir
-			}//ahora chequeo los clientes a enviar
+					_fds[j].events |= POLLOUT;
+			}
 			if (_fds[i].revents & POLLOUT)
 			{
-				// for (int i = 0; i < _polls_size; i++)
-				if (_fds[i].fd != _fd )
+				if (_fds[i].fd != _fd)
 				{
 					cli = getClient((int)_fds[i].fd);
 					if (cli)
@@ -69,7 +65,7 @@ void Server::ServerStart()
 							_disconnectClient(cli, std::string("unexpected client disconnection send msg to " + cli->getNickName() + "\n"), 1);
 					}
 				}
-				_fds[i].events &= ~POLLOUT; // Limpiar el evento POLLOUT
+				_fds[i].events &= ~POLLOUT;
 			}
 		}
 	}
@@ -78,22 +74,21 @@ void Server::ServerStart()
 
 void Server::_addClient(int inConectionFd, struct sockaddr_in clientadd)
 {
-	_clients.push_back((Client(inConectionFd, clientadd))); //-> add the client to the vector of clients
+	_clients.push_back((Client(inConectionFd, clientadd)));
 }
 
-void Server::AcceptNewClient() // agregamos un  cliente a la lista de clientes
+void Server::AcceptNewClient()
 {
-	std::cout << "NEW CLIENT TRYING TO CONNECT!!!!\n";
 	int inConectionFd;
-	struct sockaddr_in clientadd; // lo mismo pero para un nuevo cliente conectado
+	struct sockaddr_in clientadd;
 	socklen_t len = sizeof(clientadd);
 
-	if ((inConectionFd = accept(_fd, (sockaddr *)&(clientadd), &len)) == -1) //-> accept the new client
+	if ((inConectionFd = accept(_fd, (sockaddr *)&(clientadd), &len)) == -1)
 		throw(std::runtime_error("faild accept client"));
-	if (fcntl(inConectionFd, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
+	if (fcntl(inConectionFd, F_SETFL, O_NONBLOCK) == -1)
 		throw(std::runtime_error("faild to set option (O_NONBLOCK) on socket of client"));
-	_addClient(inConectionFd, clientadd); //-> add the client to the vector of clients
-	addPollfd(inConectionFd);			  // -> agrega un nuevo fd a la lista de poll para la escucha de un evento
+	_addClient(inConectionFd, clientadd);
+	addPollfd(inConectionFd);
 }
 
 void Server::ReceiveNewData(int fd)
@@ -105,7 +100,7 @@ void Server::ReceiveNewData(int fd)
 	Client *cli = getClient(fd);
 
 	if (!cli->receiveMessage())
-		_disconnectClient(cli, std::string("Client disconected " + cli->getInBuffer()), 1); //-> clear the client
+		_disconnectClient(cli, std::string("Client disconected " + cli->getInBuffer()), 1);
 	else if (!cli->msgLon())
 	{
 		if (cli->getInBuffer().find(std::string("\r\n")) != std::string::npos || cli->getInBuffer().find(std::string("\n")) != std::string::npos)
@@ -119,24 +114,24 @@ void Server::ReceiveNewData(int fd)
 					match = "\r\n";
 				sms = line.substr(0, line.find(match));
 				line.erase(0, line.find(match) + match.length());
-				std::cout << "MESSAGE FROM " << cli->getNickName() << ": " << sms << std::endl;
-				params.clear(); // Extraer parametros y comandos
+				std::cout << "Msg from: " << cli->getNickName() << ": " << sms << std::endl;
+				params.clear();
 				std::istringstream iss(sms);
 				if (sms[0] == ':')
-					iss >> token;	 // Read and discard the prefix
-				iss >> command;		 // extrae el comando
-				while (iss >> token) // extraemos los parametros
+					iss >> token;
+				iss >> command;
+				while (iss >> token)
 				{
 					if (token[0] == ':')
-					{ // Extract the trailing part
+					{
 						std::string trailing;
-						std::getline(iss, trailing);				  // extrae todo el texto
-						params.push_back(token.substr(1) + trailing); // quita los dos puntos
+						std::getline(iss, trailing);
+						params.push_back(token.substr(1) + trailing);
 						break;
 					}
 					else
-						params.push_back(token); // el parametro no tiene :
-				} // Remove trailing \r from the last parameter
+						params.push_back(token);
+				}
 				if (!params.empty() && !params[params.size() - 1].empty() && params[params.size() - 1][params[params.size() - 1].size() - 1] == '\r')
 					params[params.size() - 1].resize(params[params.size() - 1].size() - 1);
 				if (command == std::string("PASS"))
@@ -165,8 +160,6 @@ void Server::ReceiveNewData(int fd)
 					_cmdMode(cli, params);
 				else if (command == std::string("WHOIS"))
 					_cmdWho(cli, params);
-				//	else if (command == std::string("DCC"))
-				//	_cmdDcc(cli, params);
 				else
 				{
 					cli->addOutBuffer(std::string("421") + std::string(" * ") + command + std::string(" :Unknown command\r\n"));

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Command.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apodader <apodader@student.42barcel>       +#+  +:+       +#+        */
+/*   By: jocorrea <jocorrea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/28 13:28:31 by jocorrea          #+#    #+#             */
-/*   Updated: 2024/09/11 18:17:48 by apodader         ###   ########.fr       */
+/*   Updated: 2024/09/22 17:16:13 by jocorrea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void Server::_cmdChannelMode(Client *client, std::vector<std::string> params)
 						{
 						case 'i':
 							channel->setInvOnly(setMode);
-							client->addOutBuffer(std::string(":" + client->getNickName() + " MODE " + params[0] + (setMode ? "+i" : "-i") + "\r\n"));
+							client->addOutBuffer(std::string(":" + client->getNickName() + " MODE " + params[0] + " " + (setMode ? "+i" : "-i") + "\r\n"));
 							break;
 						case 't':
 							channel->setTopicLock(setMode);
@@ -149,7 +149,7 @@ void Server::_cmdInvite(Client *client, std::vector<std::string> params)
 				else
 				{
 					tChannel->invite(target->getNickName());
-					client->addOutBuffer(std::string("341 " + params[1] + " " + params[0] + "\r\n"));
+					client->addOutBuffer(std::string("341 * " + params[0] + " " + params[1] + "\r\n"));
 				}
 			}
 			else
@@ -179,7 +179,6 @@ void Server::_cmdKick(Client *client, std::vector<std::string> params)
 		{
 			if (Channel *channel = getChannel(channels[i]))
 			{
-				std::cout << channels[i] << ", " << user[i] << ", " << reason << std::endl;
 				if (channel->isAdmin(client->getNickName()))
 				{
 					if (channel->removeClient(user[i]))
@@ -264,8 +263,6 @@ void Server::_cmdPrivmsg(Client *client, std::vector<std::string> params)
 		client->addOutBuffer(std::string("451 * :PRIVMSG-You have not registered \r\n"));
 	else if (params.size() < 2)
 		client->addOutBuffer(std::string("461 " + client->getNickName() + " PRIVMSG :Not enough parameters \r\n"));
-	else if (params[1].find("DCC") != std::string::npos)
-		_fileTransfer(client, params);
 	else
 	{
 		std::vector<std::string> obj;
@@ -344,9 +341,8 @@ void Server::_bot(Client *client, std::vector<std::string> params)
 void Server::_botRandom(Client *client, std::vector<std::string> params)
 {
 	(void)params;
-	srand(time(NULL));			 // initializes the random number generator with a seed value based on the current time
-	int index = rand() % 10 + 1; // number between 1 and 10
-
+	srand(time(NULL));
+	int index = rand() % 10 + 1;
 	std::string str;
 	switch (index)
 	{
@@ -390,94 +386,7 @@ void Server::_botHour(Client *client, std::vector<std::string> params)
 	std::stringstream ss;
 	std::time_t t = std::time(NULL);
 	std::tm *tm_local = std::localtime(&t);
-
-	ss << "Current local time: " << tm_local->tm_hour << ":"
-	   << tm_local->tm_min << ":" << tm_local->tm_sec;
-
+	ss << "Current local time: " << tm_local->tm_hour << ":" << tm_local->tm_min << ":" << tm_local->tm_sec;
 	std::string time = ss.str();
 	client->addOutBuffer(":Bot PRIVMSG " + client->getNickName() + time + "'\r\n");
-}
-
-void Server::_fileTransfer(Client *client, std::vector<std::string> params)
-{
-	(void)client;
-	std::istringstream iss(params[1]);
-	std::string f_cmd, clientTarg, s_cmd, option, file_name, ip, port, file_size;
-	clientTarg = params[0];
-	std::getline(iss, s_cmd, ' ');
-	std::getline(iss, option, ' ');
-	std::getline(iss, file_name, ' ');
-	std::getline(iss, ip, ' ');
-	std::getline(iss, port, ' ');
-	std::getline(iss, file_size, '\r');
-	// std::cout << clientTarg << " " << getClientNick(clientTarg) << ", " << s_cmd << ", " << option << ", " << file_name << ", " << ip << ", " << port << ", " << file_size << std::endl;
-	if (option != "SEND" || getClientNick(clientTarg) == NULL || file_name.empty() || ip.empty() || port.empty() || file_size.empty())
-	{
-		client->addOutBuffer(std::string("ERROR :Invalid command!\r\n"));
-		return;
-	}
-
-	int port_int = std::strtod(port.c_str(), NULL);
-	if (port_int <= 0)
-	{
-		client->addOutBuffer(std::string("ERROR :Port givin is negative!\r\n"));
-		return;
-	}
-	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0)
-	{
-		client->addOutBuffer(std::string("ERROR :Could not create socket!\r\n"));
-		return;
-	}
-	struct sockaddr_in serv_addr;
-	memset(&serv_addr, 0, sizeof(serv_addr));
-
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(port_int);
-	inet_pton(AF_INET, ip.c_str(), &(serv_addr.sin_addr));
-
-	if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-	{
-		std::cout << "ENTRO AQUI " << std::endl;
-		client->addOutBuffer(std::string("ERROR :Connection failure!\r\n"));
-		close(sockfd);
-		return;
-	}
-	client->addOutBuffer(std::string("File transfer started!\r\n"));
-	// file_transfer = true;
-
-	const char *home = std::getenv("HOME");
-	if (!home)
-	{
-		client->addOutBuffer(std::string("ERROR :Invalid HOME variable!\r\n"));
-		return;
-	}
-	std::string source_file_path = std::string((std::string)home + (std::string) "/" + file_name);
-	std::cout << home << " " << source_file_path.c_str() << std::endl;
-	std::ifstream infile(source_file_path.c_str(), std::ifstream::binary);
-	if (!infile.good())
-	{
-		client->addOutBuffer(std::string("ERROR :Infile is invalid!\r\n"));
-		close(sockfd);
-		return;
-	}
-	std::string destination_file_path = std::string(home) + "/" + "_copy";
-	std::ofstream outfile(destination_file_path.c_str(), std::ofstream::binary);
-	if (!outfile)
-	{
-		client->addOutBuffer(std::string("ERROR :Outfile wasn't created!\r\n"));
-		close(sockfd);
-		return;
-	}
-
-	char buffer[1024];
-	std::streamsize n;
-	while ((n = infile.read(buffer, sizeof(buffer)).gcount()) > 0)
-	{
-		outfile.write(buffer, n);
-	}
-
-	client->addOutBuffer(std::string("File transfer completed!\r\n"));
-	infile.close();
-	outfile.close();
 }
