@@ -8,7 +8,7 @@
 5. [Contributors](#contributors)
 
 ## Introduction
-`ft_irc` is a custom implementation of an IRC (Internet Relay Chat) server. This project is part of the 42 curriculum and follows the guidelines outlined in the 42 ft_irc subject. The goal is to implement an IRC server that adheres to the RFC 1459 standard, allowing multiple clients to connect and communicate with each other.
+`ft_irc` is a custom implementation of an IRC (Internet Relay Chat) server. This project is part of the 42 curriculum and follows the guidelines outlined in the 42 ft_irc subject. The goal is to implement an IRC server that adheres to the `RFC 1459` standard, allowing multiple clients to connect and communicate with each other.
 
 ## Features
 - Handles multiple users and channels.
